@@ -326,7 +326,7 @@ function showQR(id){
   currentQRId = id;
   const t = trainings.find(x=>x.id===id);
   if(!t) return;
-  const base = window.location.href.replace(/admin\.html.*/,'');
+  const base = 'https://javierlama123-boop.github.io/Capacitaciones_repositorio/';
   const url  = base + 'asistencia.html?id='+id;
   document.getElementById('qr-subtitle').textContent = t.nombre;
   document.getElementById('qr-hint').innerHTML =
