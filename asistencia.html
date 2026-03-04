@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Registro de Asistencia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, increment }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
+  authDomain: "capacitaciones-29aab.firebaseapp.com",
+  projectId: "capacitaciones-29aab",
+  storageBucket: "capacitaciones-29aab.firebasestorage.app",
+  messagingSenderId: "1013033091630",
+  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+window._db         = db;
+window._doc        = doc;
+window._getDoc     = getDoc;
+window._collection = collection;
+window._addDoc     = addDoc;
+window._query      = query;
+window._where      = where;
+window._getDocs    = getDocs;
+window._updateDoc  = updateDoc;
+window._increment  = increment;
+window._fbReady    = true;
+document.dispatchEvent(new Event('fb-ready'));
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf7f2;--card:#ffffff;--ink:#1c1814;--muted:#8a7d6e;
+  --accent:#c45c2e;--border:#e2d9cc;--success:#2d7a4f;--success-bg:#e8f5ee;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(196,92,46,0.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 80%,rgba(232,160,64,0.07) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* ESTADOS */
+.state{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;z-index:1}
+.state.active{display:flex;animation:fadeIn 0.35s ease}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.98)}to{opacity:1;transform:scale(1)}}
+
+/* LOADING */
+#s-loading .spinner{width:48px;height:48px;border:3px solid rgba(196,92,46,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+#s-loading p{color:var(--muted);font-size:0.9rem}
+
+/* NO PARAMS / ERROR */
+.state h2{font-family:'Playfair Display',serif;font-size:1.7rem;margin-bottom:0.5rem}
+.state p{color:var(--muted);font-size:0.88rem;line-height:1.6;max-width:320px}
+.big-icon{font-size:3.5rem;margin-bottom:1rem}
+
+/* FORMULARIO */
+#s-form{display:none;flex:1;flex-direction:column;height:100vh;overflow-y:auto;position:relative;z-index:1}
+#s-form.active{display:flex}
+
+.banner{background:var(--ink);padding:1.6rem 2rem 1.4rem;flex-shrink:0;position:relative;overflow:hidden}
+.banner::after{content:'';position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(196,92,46,0.15);pointer-events:none}
+.banner-label{font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#e8a040;margin-bottom:0.5rem}
+.banner-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:#f5ede0;line-height:1.2;margin-bottom:0.9rem}
+.banner-meta{display:flex;flex-wrap:wrap;gap:0.5rem}
+.bmeta{font-size:0.78rem;color:rgba(245,237,224,0.65);background:rgba(255,255,255,0.08);padding:0.3rem 0.7rem;border-radius:20px}
+
+.form-area{flex:1;padding:2rem;max-width:520px;margin:0 auto;width:100%}
+.form-title{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:0.3rem}
+.form-sub{font-size:0.82rem;color:var(--muted);margin-bottom:1.8rem}
+
+.field{display:flex;flex-direction:column;gap:0.45rem;margin-bottom:1.2rem}
+label{font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)}
+.req{color:var(--accent)}
+input{font-family:'Outfit',sans-serif;font-size:1rem;padding:0.9rem 1.1rem;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--ink);outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(196,92,46,0.1)}
+input.error{border-color:var(--accent);animation:shake 0.3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.submit-btn{width:100%;padding:1.05rem;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.1s,box-shadow 0.2s;box-shadow:0 4px 16px rgba(196,92,46,0.3);margin-top:0.5rem}
+.submit-btn:hover{background:#a84a22;transform:translateY(-1px)}
+.submit-btn:disabled{background:#c9b9a8;box-shadow:none;cursor:not-allowed;transform:none}
+.spinner-sm{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px}
+
+.alert{border-radius:8px;padding:0.8rem 1rem;font-size:0.84rem;margin-bottom:1rem;display:none}
+.alert-warn{background:#fff3cd;border:1px solid #f0c040;color:#856404}
+.alert-err{background:#fde8e8;border:1px solid #e05555;color:#a02020}
+
+.privacy{text-align:center;font-size:0.73rem;color:var(--muted);margin-top:1.2rem;line-height:1.5;padding:0 1rem}
+
+/* ÉXITO */
+#s-success{animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
+@keyframes popIn{from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)}}
+.success-circle{width:90px;height:90px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;font-size:2.6rem;margin:0 auto 1.5rem}
+#s-success h2{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--success);margin-bottom:0.5rem}
+.success-course{background:var(--success-bg);border-radius:10px;padding:0.9rem 1.4rem;margin:1.5rem 0;font-size:0.85rem;color:var(--success);font-weight:500;max-width:340px}
+.reset-btn{background:none;border:1.5px solid var(--border);padding:0.75rem 2rem;border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.88rem;color:var(--muted);cursor:pointer;transition:all 0.2s;margin-top:1rem}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+.countdown{font-size:0.78rem;color:var(--muted);margin-top:0.7rem}
+.countdown span{color:var(--accent);font-weight:600}
+
+/* FOOTER */
+.kiosk-footer{text-align:center;padding:0.9rem;font-size:0.7rem;color:var(--border);flex-shrink:0;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="state active" id="s-loading">
+  <div class="spinner"></div>
+  <p>Conectando con Firebase...</p>
+</div>
+
+<!-- SIN PARAMS -->
+<div class="state" id="s-noparams">
+  <div class="big-icon">📋</div>
+  <h2>Registro de Asistencia</h2>
+  <p>Esta pantalla debe abrirse desde el panel de administración o escaneando el código QR de la capacitación.</p>
+</div>
+
+<!-- ERROR -->
+<div class="state" id="s-error">
+  <div class="big-icon">⚠️</div>
+  <h2>Capacitación no encontrada</h2>
+  <p>El código QR puede ser inválido o la capacitación fue eliminada.<br/>Contacta al administrador.</p>
+</div>
+
+<!-- FORMULARIO -->
+<div id="s-form">
+  <div class="banner">
+    <div class="banner-label">✅ Registro de Asistencia</div>
+    <div class="banner-title" id="banner-title">—</div>
+    <div class="banner-meta">
+      <span class="bmeta" id="banner-lugar">📍 —</span>
+      <span class="bmeta" id="banner-fecha">📅 —</span>
+      <span class="bmeta" id="banner-dur">⏱ —</span>
+    </div>
+  </div>
+  <div class="form-area">
+    <div class="form-title">Ingresa tus datos</div>
+    <div class="form-sub">Completa el formulario para confirmar tu participación.</div>
+
+    <div class="alert alert-warn" id="alert-dup">⚠️ Ya existe un registro con este RUT para esta capacitación.</div>
+    <div class="alert alert-err" id="alert-err">❌ Error al guardar. Intenta nuevamente.</div>
+
+    <div class="field">
+      <label>Nombre completo <span class="req">*</span></label>
+      <input type="text" id="inp-nombre" placeholder="Tu nombre y apellido" autocomplete="name"/>
+    </div>
+    <div class="field">
+      <label>RUT / ID <span class="req">*</span></label>
+      <input type="text" id="inp-rut" placeholder="12.345.678-9"/>
+    </div>
+    <div class="field">
+      <label>Área / Departamento</label>
+      <input type="text" id="inp-area" placeholder="Ej: Operaciones"/>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="registrar()">Confirmar Asistencia ✓</button>
+    <p class="privacy">☁️ Tus datos se guardan de forma segura en Firebase y solo serán usados para el registro de asistencia.</p>
+  </div>
+</div>
+
+<!-- ÉXITO -->
+<div class="state" id="s-success">
+  <div class="success-circle">✓</div>
+  <h2>¡Asistencia registrada!</h2>
+  <p>Tu participación ha sido confirmada y guardada en el sistema.</p>
+  <div class="success-course" id="success-course">—</div>
+  <button class="reset-btn" onclick="resetForm()">Registrar otro participante</button>
+  <div class="countdown">Volviendo automáticamente en <span id="count">8</span>s...</div>
+</div>
+
+<div class="kiosk-footer">Sistema de Capacitaciones · Área de Recursos Humanos · ☁️ Firebase</div>
+
+<script>
+let currentCap = null;
+let countdownTimer = null;
+
+function showState(id){
+  document.querySelectorAll('.state').forEach(s=>{s.classList.remove('active')});
+  const form = document.getElementById('s-form');
+  form.classList.remove('active');
+  if(id==='s-form'){
+    form.classList.add('active');
+  } else {
+    document.getElementById(id).classList.add('active');
+  }
+}
+
+function fmtDate(d){
+  return d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}) : '—';
+}
+
+document.addEventListener('fb-ready', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+
+  if(!id){ showState('s-noparams'); return; }
+
+  try {
+    const snap = await window._getDoc(window._doc(window._db,'capacitaciones',id));
+    if(!snap.exists()){ showState('s-error'); return; }
+
+    currentCap = { id: snap.id, ...snap.data() };
+
+    document.getElementById('banner-title').textContent = currentCap.nombre;
+    document.getElementById('banner-lugar').textContent = '📍 '+currentCap.lugar;
+    document.getElementById('banner-fecha').textContent = '📅 '+fmtDate(currentCap.fecha);
+    document.getElementById('banner-dur').textContent   = '⏱ '+currentCap.duracion+'h';
+
+    showState('s-form');
+    setTimeout(()=>document.getElementById('inp-nombre').focus(), 300);
+  } catch(e){
+    console.error(e);
+    showState('s-error');
+  }
+});
+
+async function registrar(){
+  const nombre = document.getElementById('inp-nombre').value.trim();
+  const rut    = document.getElementById('inp-rut').value.trim();
+  const area   = document.getElementById('inp-area').value.trim();
+
+  // Ocultar alertas previas
+  document.getElementById('alert-dup').style.display='none';
+  document.getElementById('alert-err').style.display='none';
+
+  if(!nombre){ markError('inp-nombre'); return; }
+  if(!rut)   { markError('inp-rut'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner-sm"></span>Guardando...';
+
+  try {
+    // Verificar duplicado por RUT en subcolección
+    const attCol = window._collection(window._db,'capacitaciones',currentCap.id,'asistentes');
+    const dupQ   = window._query(attCol, window._where('rut','==',rut));
+    const dupSnap= await window._getDocs(dupQ);
+
+    if(!dupSnap.empty){
+      document.getElementById('alert-dup').style.display='block';
+      markError('inp-rut');
+      btn.disabled=false; btn.innerHTML='Confirmar Asistencia ✓';
+      return;
+    }
+
+    // Guardar asistente en subcolección
+    await window._addDoc(attCol,{
+      nombre, rut, area,
+      hora: new Date().toISOString()
+    });
+
+    // Incrementar contador en el documento padre
+    await window._updateDoc(
+      window._doc(window._db,'capacitaciones',currentCap.id),
+      { totalAsistentes: window._increment(1) }
+    );
+
+    // Mostrar éxito
+    document.getElementById('success-course').textContent = '📚 '+currentCap.nombre;
+    showState('s-success');
+    startCountdown();
+
+  } catch(e){
+    console.error(e);
+    document.getElementById('alert-err').style.display='block';
+    document.getElementById('alert-err').textContent='❌ Error: '+e.message;
+    btn.disabled=false; btn.innerHTML='Confirmar Asistencia ✓';
+  }
+}
+
+function markError(id){
+  const el = document.getElementById(id);
+  el.classList.add('error');
+  el.focus();
+  setTimeout(()=>el.classList.remove('error'),600);
+}
+
+function startCountdown(){
+  let n=8;
+  document.getElementById('count').textContent=n;
+  if(countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(()=>{
+    n--;
+    const el=document.getElementById('count');
+    if(el) el.textContent=n;
+    if(n<=0){ clearInterval(countdownTimer); resetForm(); }
+  },1000);
+}
+
+function resetForm(){
+  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+  ['inp-nombre','inp-rut','inp-area'].forEach(i=>document.getElementById(i).value='');
+  ['alert-dup','alert-err'].forEach(i=>document.getElementById(i).style.display='none');
+  document.getElementById('submit-btn').disabled=false;
+  document.getElementById('submit-btn').innerHTML='Confirmar Asistencia ✓';
+  showState('s-form');
+  setTimeout(()=>document.getElementById('inp-nombre').focus(),200);
+}
+
+// Modo quiosco: bloquear menú contextual y atajos de dev
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='u')) e.preventDefault();
+});
+</script>
+</body>
+</html>

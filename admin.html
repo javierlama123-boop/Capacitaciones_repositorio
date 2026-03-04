@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Capacitaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
+  authDomain: "capacitaciones-29aab.firebaseapp.com",
+  projectId: "capacitaciones-29aab",
+  storageBucket: "capacitaciones-29aab.firebasestorage.app",
+  messagingSenderId: "1013033091630",
+  appId: "1:1013033091630:web:d94384de993c34bb3c55bf"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+window._db         = db;
+window._collection = collection;
+window._addDoc     = addDoc;
+window._getDocs    = getDocs;
+window._deleteDoc  = deleteDoc;
+window._doc        = doc;
+window._onSnapshot = onSnapshot;
+window._query      = query;
+window._orderBy    = orderBy;
+window._fbReady    = true;
+document.dispatchEvent(new Event('fb-ready'));
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0e0c;--surface:#1a1814;--card:#221f1a;--border:#332e27;
+  --accent:#e8a040;--fg:#f5ede0;--muted:#8a7d6e;
+  --success:#4caf82;--danger:#e05555;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
+aside{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
+.logo{padding:1.8rem 1.5rem 1.4rem;border-bottom:1px solid var(--border)}
+.logo h1{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--accent);line-height:1.2}
+.logo p{font-size:0.72rem;color:var(--muted);margin-top:0.3rem}
+nav{flex:1;padding:1.2rem 0}
+.nav-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1.5rem;cursor:pointer;font-size:0.87rem;font-weight:500;color:var(--muted);border-left:3px solid transparent;transition:all 0.2s}
+.nav-item:hover{color:var(--fg);background:rgba(255,255,255,0.04)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(232,160,64,0.07)}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid var(--border);font-size:0.72rem;color:var(--muted);line-height:1.7}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--danger);display:inline-block;margin-right:6px;animation:blink 2s ease infinite}
+.dot.green{background:var(--success)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+main{margin-left:240px;padding:2.5rem;min-height:100vh}
+.page{display:none}
+.page.active{display:block;animation:fadeUp 0.3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:2rem}
+.page-header h2{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--fg)}
+.page-header p{font-size:0.84rem;color:var(--muted);margin-top:0.3rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.6rem;margin-bottom:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:0.45rem}
+label{font-size:0.73rem;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted)}
+input,textarea{font-family:'Outfit',sans-serif;font-size:0.9rem;padding:0.72rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--fg);outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,160,64,0.12)}
+textarea{resize:vertical;min-height:72px}
+.btn{font-family:'Outfit',sans-serif;font-size:0.88rem;font-weight:600;padding:0.75rem 1.8rem;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s}
+.btn-primary{background:var(--accent);color:#0f0e0c}
+.btn-primary:hover{background:#f5b050;transform:translateY(-1px)}
+.btn-primary:disabled{background:#444;color:#777;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn-ghost:hover{background:rgba(232,160,64,0.1)}
+.btn-sm{padding:0.45rem 1rem;font-size:0.8rem;border-radius:6px}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem;text-align:center}
+.stat-num{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--accent)}
+.stat-label{font-size:0.78rem;color:var(--muted);margin-top:0.3rem}
+.t-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.4rem 1.6rem;margin-bottom:0.9rem;display:grid;grid-template-columns:1fr auto;gap:1.2rem;align-items:center;transition:border-color 0.2s}
+.t-card:hover{border-color:rgba(232,160,64,0.3)}
+.t-name{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--fg);margin-bottom:0.5rem}
+.t-meta{display:flex;flex-wrap:wrap;gap:0.5rem}
+.tag{font-size:0.75rem;padding:0.22rem 0.65rem;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--muted)}
+.tag-att{background:rgba(76,175,130,0.12);color:var(--success)}
+.t-actions{display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end}
+.empty{text-align:center;padding:4rem;color:var(--muted)}
+.empty .big{font-size:3rem;margin-bottom:0.75rem;opacity:0.4}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex;animation:fadeUp 0.2s ease}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.2rem;max-width:440px;width:90%;position:relative;box-shadow:0 24px 80px rgba(0,0,0,0.6);text-align:center}
+.modal h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.3rem}
+.modal-sub{font-size:0.82rem;color:var(--muted);margin-bottom:1.5rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;transition:color 0.2s}
+.modal-close:hover{color:var(--fg)}
+#qrcode{display:flex;justify-content:center;margin:1rem auto;padding:1rem;background:#fff;border-radius:10px;width:fit-content}
+.qr-hint{font-size:0.75rem;color:var(--muted);background:rgba(255,255,255,0.04);border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:1.2rem;line-height:1.6}
+.modal-actions{display:flex;gap:0.75rem;justify-content:center}
+.att-modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:560px;width:90%;position:relative;max-height:80vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6)}
+.att-modal h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1.4rem}
+.att-row{display:flex;justify-content:space-between;align-items:center;padding:0.65rem 0.9rem;border-radius:7px;margin-bottom:0.4rem;background:rgba(255,255,255,0.04);font-size:0.85rem}
+.att-row-left strong{display:block;color:var(--fg)}
+.att-row-left span{font-size:0.76rem;color:var(--muted)}
+.att-row-right{font-size:0.74rem;color:var(--muted)}
+.export-info{background:rgba(232,160,64,0.07);border:1px solid rgba(232,160,64,0.2);border-radius:8px;padding:1rem 1.2rem;margin-top:1.2rem;font-size:0.83rem;color:var(--muted);line-height:1.6}
+.export-info strong{color:var(--accent)}
+.loader{display:inline-block;width:16px;height:16px;border:2px solid rgba(232,160,64,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.live-badge{font-size:0.7rem;background:rgba(76,175,130,0.15);color:var(--success);padding:0.2rem 0.6rem;border-radius:20px;margin-left:0.6rem;vertical-align:middle}
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.9rem 1.4rem;font-size:0.86rem;color:var(--fg);box-shadow:0 8px 32px rgba(0,0,0,0.4);z-index:999;transform:translateY(20px);opacity:0;transition:all 0.3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-left:3px solid var(--success)}
+.toast.err{border-left:3px solid var(--danger)}
+@media(max-width:700px){aside{display:none}main{margin-left:0;padding:1.2rem}}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="logo">
+    <h1>Panel de<br/>Capacitaciones</h1>
+    <p>Área de Recursos Humanos</p>
+  </div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('nueva')" id="nav-nueva"><span class="icon">➕</span> Nueva Capacitación</div>
+    <div class="nav-item" onclick="showPage('lista')" id="nav-lista"><span class="icon">📋</span> Capacitaciones</div>
+    <div class="nav-item" onclick="showPage('exportar')" id="nav-exportar"><span class="icon">📥</span> Exportar Datos</div>
+  </nav>
+  <div class="sidebar-footer">
+    <span class="dot" id="conn-dot"></span><span id="conn-text">Conectando...</span><br/>
+    Firebase Firestore · Tiempo real
+  </div>
+</aside>
+
+<main>
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <h2>Dashboard <span class="live-badge">● En vivo</span></h2>
+      <p>Datos sincronizados en tiempo real desde Firebase</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Capacitaciones</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-att">—</div><div class="stat-label">Total asistentes</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-hrs">—</div><div class="stat-label">Horas capacitadas</div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:0.8rem;color:var(--muted);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1rem">Capacitaciones Recientes</div>
+      <div id="recent-list"><span class="loader"></span>Cargando...</div>
+    </div>
+  </div>
+
+  <div class="page" id="page-nueva">
+    <div class="page-header">
+      <h2>Nueva Capacitación</h2>
+      <p>Completa los datos para registrar en Firebase y generar el QR</p>
+    </div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group fg-full"><label>Nombre del Curso *</label><input type="text" id="f-nombre" placeholder="Ej: Seguridad Industrial Nivel II"/></div>
+        <div class="form-group"><label>Lugar *</label><input type="text" id="f-lugar" placeholder="Ej: Sala de Conferencias A"/></div>
+        <div class="form-group"><label>Fecha *</label><input type="date" id="f-fecha"/></div>
+        <div class="form-group"><label>Duración (horas) *</label><input type="number" id="f-duracion" min="0.5" step="0.5" placeholder="Ej: 4"/></div>
+        <div class="form-group"><label>Relator / Instructor</label><input type="text" id="f-relator" placeholder="Nombre del relator"/></div>
+        <div class="form-group fg-full"><label>Descripción (opcional)</label><textarea id="f-desc" placeholder="Breve descripción del contenido..."></textarea></div>
+      </div>
+      <button class="btn btn-primary" id="btn-registrar" onclick="registrar()">Registrar y Generar QR →</button>
+    </div>
+  </div>
+
+  <div class="page" id="page-lista">
+    <div class="page-header">
+      <h2>Capacitaciones <span class="live-badge">● En vivo</span></h2>
+      <p>Sincronizado automáticamente con Firebase</p>
+    </div>
+    <div id="lista-container"><span class="loader"></span>Cargando...</div>
+  </div>
+
+  <div class="page" id="page-exportar">
+    <div class="page-header"><h2>Exportar Datos</h2><p>Descarga registros desde Firebase en formato CSV</p></div>
+    <div class="card">
+      <div style="font-size:0.9rem;color:var(--muted);margin-bottom:1.5rem">Exporta todos los datos almacenados en Firebase Firestore como archivos CSV compatibles con Excel.</div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="exportCSV('cap')">⬇ Capacitaciones (CSV)</button>
+        <button class="btn btn-ghost" onclick="exportCSV('att')">⬇ Asistentes (CSV)</button>
+      </div>
+      <div class="export-info"><strong>¿Cómo abrir en Excel?</strong><br/>Excel → Datos → Desde texto/CSV → selecciona el archivo → Delimitador: coma → Cargar.</div>
+    </div>
+  </div>
+</main>
+
+<!-- QR MODAL -->
+<div class="overlay" id="qrOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('qrOverlay')">✕</button>
+    <h3>Código QR generado</h3>
+    <p class="modal-sub" id="qr-subtitle">—</p>
+    <div id="qrcode"></div>
+    <div class="qr-hint" id="qr-hint">—</div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="imprimirQR()">🖨 Imprimir QR</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('qrOverlay')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATTENDEES MODAL -->
+<div class="overlay" id="attOverlay">
+  <div class="att-modal">
+    <button class="modal-close" onclick="closeModal('attOverlay')">✕</button>
+    <h3 id="att-modal-title">Asistentes</h3>
+    <div id="att-modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let trainings = [];
+let currentQRId = null;
+
+function toast(msg, type='ok'){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'toast show '+type;
+  setTimeout(()=>el.classList.remove('show'),3200);
+}
+function fmtDate(d){ return d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+}
+
+document.addEventListener('fb-ready', () => {
+  document.getElementById('conn-dot').classList.add('green');
+  document.getElementById('conn-text').textContent = 'Conectado';
+
+  const q = window._query(window._collection(window._db,'capacitaciones'), window._orderBy('creadoEn','desc'));
+  window._onSnapshot(q, snap => {
+    trainings = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderDashboard();
+    renderLista();
+  }, err => {
+    document.getElementById('conn-text').textContent = 'Sin conexión';
+    toast('Error de conexión: '+err.message,'err');
+  });
+});
+
+function renderDashboard(){
+  const totalAtt = trainings.reduce((s,t)=>s+(t.totalAsistentes||0),0);
+  const totalHrs = trainings.reduce((s,t)=>s+(parseFloat(t.duracion)||0),0);
+  document.getElementById('stat-total').textContent = trainings.length;
+  document.getElementById('stat-att').textContent   = totalAtt;
+  document.getElementById('stat-hrs').textContent   = totalHrs%1===0?totalHrs:totalHrs.toFixed(1);
+  const el = document.getElementById('recent-list');
+  if(!trainings.length){ el.innerHTML='<div style="color:var(--muted);font-size:0.85rem">Sin registros aún.</div>'; return; }
+  el.innerHTML = trainings.slice(0,5).map(t=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.7rem 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:0.9rem;font-weight:500">${t.nombre}</div><div style="font-size:0.75rem;color:var(--muted)">${t.lugar} · ${fmtDate(t.fecha)}</div></div>
+      <span class="tag tag-att">👥 ${t.totalAsistentes||0}</span>
+    </div>`).join('');
+}
+
+async function registrar(){
+  if(!window._fbReady){ toast('Firebase no listo','err'); return; }
+  const nombre   = document.getElementById('f-nombre').value.trim();
+  const lugar    = document.getElementById('f-lugar').value.trim();
+  const fecha    = document.getElementById('f-fecha').value;
+  const duracion = document.getElementById('f-duracion').value;
+  const relator  = document.getElementById('f-relator').value.trim();
+  const desc     = document.getElementById('f-desc').value.trim();
+  if(!nombre||!lugar||!fecha||!duracion){ toast('Completa los campos obligatorios (*)','err'); return; }
+  const btn = document.getElementById('btn-registrar');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span>Guardando...';
+  try {
+    const ref = await window._addDoc(window._collection(window._db,'capacitaciones'),{
+      nombre, lugar, fecha, duracion:parseFloat(duracion),
+      relator, desc, totalAsistentes:0, creadoEn:new Date().toISOString()
+    });
+    ['f-nombre','f-lugar','f-fecha','f-duracion','f-relator','f-desc'].forEach(i=>document.getElementById(i).value='');
+    toast('✅ Capacitación registrada en Firebase');
+    showPage('lista');
+    setTimeout(()=>showQR(ref.id),500);
+  } catch(e){ toast('Error: '+e.message,'err'); }
+  finally { btn.disabled=false; btn.innerHTML='Registrar y Generar QR →'; }
+}
+
+function renderLista(){
+  const c = document.getElementById('lista-container');
+  if(!trainings.length){ c.innerHTML=`<div class="empty"><div class="big">📂</div>Sin capacitaciones registradas.</div>`; return; }
+  c.innerHTML = trainings.map(t=>`
+    <div class="t-card">
+      <div>
+        <div class="t-name">${t.nombre}</div>
+        <div class="t-meta">
+          <span class="tag">📍 ${t.lugar}</span>
+          <span class="tag">📅 ${fmtDate(t.fecha)}</span>
+          <span class="tag">⏱ ${t.duracion}h</span>
+          ${t.relator?`<span class="tag">👤 ${t.relator}</span>`:''}
+          <span class="tag tag-att">👥 ${t.totalAsistentes||0} asistentes</span>
+        </div>
+      </div>
+      <div class="t-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showQR('${t.id}')">Ver QR</button>
+        <button class="btn btn-ghost btn-sm" onclick="showAttendees('${t.id}')">Asistentes</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminar('${t.id}','${t.nombre.replace(/'/g,"\\'")}')">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+async function eliminar(id,nombre){
+  if(!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+  try { await window._deleteDoc(window._doc(window._db,'capacitaciones',id)); toast('Capacitación eliminada'); }
+  catch(e){ toast('Error: '+e.message,'err'); }
+}
+
+function showQR(id){
+  currentQRId = id;
+  const t = trainings.find(x=>x.id===id);
+  if(!t) return;
+  const base = window.location.href.replace(/admin\.html.*/,'');
+  const url  = base + 'asistencia.html?id='+id;
+  document.getElementById('qr-subtitle').textContent = t.nombre;
+  document.getElementById('qr-hint').innerHTML =
+    `<strong style="color:var(--fg)">📍 ${t.lugar}</strong> · 📅 ${fmtDate(t.fecha)} · ⏱ ${t.duracion}h<br/>
+     <span style="font-size:0.7rem;display:block;margin-top:0.3rem">Abre <strong>asistencia.html</strong> en la tablet del evento o comparte este QR.<br/>Los datos se guardan directamente en Firebase.</span>`;
+  document.getElementById('qrcode').innerHTML='';
+  new QRCode(document.getElementById('qrcode'),{text:url,width:190,height:190,colorDark:'#1a1814',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  document.getElementById('qrOverlay').classList.add('open');
+}
+
+function imprimirQR(){
+  const t = trainings.find(x=>x.id===currentQRId);
+  const canvas = document.querySelector('#qrcode canvas');
+  if(!canvas||!t) return;
+  const w = window.open('');
+  w.document.write(`<html><head><title>QR · ${t.nombre}</title>
+  <style>body{font-family:sans-serif;text-align:center;padding:50px}h2{font-size:22px;margin-bottom:6px}
+  p{color:#888;font-size:13px;margin-bottom:22px}img{width:220px;height:220px}
+  .meta{margin-top:16px;font-size:12px;color:#aaa;line-height:1.8}
+  .note{margin-top:20px;background:#f5f5f5;border-radius:8px;padding:14px;font-size:12px;color:#555;max-width:300px;margin-left:auto;margin-right:auto}
+  </style></head><body>
+  <h2>${t.nombre}</h2><p>Escanea o accede a <strong>asistencia.html</strong> para registrar tu asistencia</p>
+  <img src="${canvas.toDataURL()}"/>
+  <div class="meta">📍 ${t.lugar} | 📅 ${fmtDate(t.fecha)} | ⏱ ${t.duracion}h${t.relator?' | 👤 '+t.relator:''}</div>
+  <div class="note">☁️ Conectado a Firebase · Asistencia en tiempo real</div>
+  </body></html>`);
+  w.document.close(); setTimeout(()=>w.print(),400);
+}
+
+async function showAttendees(capId){
+  const t = trainings.find(x=>x.id===capId);
+  if(!t) return;
+  document.getElementById('att-modal-title').textContent = '👥 '+t.nombre;
+  const body = document.getElementById('att-modal-body');
+  body.innerHTML = '<span class="loader"></span>Cargando desde Firebase...';
+  document.getElementById('attOverlay').classList.add('open');
+  try {
+    const snap = await window._getDocs(window._collection(window._db,'capacitaciones',capId,'asistentes'));
+    const lista = snap.docs.map(d=>d.data());
+    if(!lista.length){ body.innerHTML='<div style="text-align:center;padding:2rem;color:var(--muted)">Sin asistentes registrados.</div>'; return; }
+    body.innerHTML = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem">${lista.length} participante(s) registrado(s)</div>`
+      + lista.map(a=>`
+        <div class="att-row">
+          <div class="att-row-left"><strong>${a.nombre}</strong><span>${[a.rut,a.area].filter(Boolean).join(' · ')}</span></div>
+          <div class="att-row-right">${new Date(a.hora).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</div>
+        </div>`).join('');
+  } catch(e){ body.innerHTML=`<div style="color:var(--danger);padding:1rem">Error: ${e.message}</div>`; }
+}
+
+async function exportCSV(type){
+  toast('Preparando exportación...');
+  try {
+    if(type==='cap'){
+      const csv = 'ID,Nombre del Curso,Lugar,Fecha,Duración (hrs),Relator,Descripción,N° Asistentes\n'
+        +trainings.map(t=>[t.id,q(t.nombre),q(t.lugar),t.fecha,t.duracion,q(t.relator||''),q(t.desc||''),(t.totalAsistentes||0)].join(',')).join('\n');
+      dl(csv,'capacitaciones.csv');
+    } else {
+      let rows=['ID Capacitación,Nombre del Curso,Nombre Completo,RUT,Área,Hora de Registro'];
+      for(const t of trainings){
+        const snap=await window._getDocs(window._collection(window._db,'capacitaciones',t.id,'asistentes'));
+        snap.docs.forEach(d=>{const a=d.data();rows.push([t.id,q(t.nombre),q(a.nombre),q(a.rut||''),q(a.area||''),a.hora].join(','));});
+      }
+      dl(rows.join('\n'),'asistencia.csv');
+    }
+    toast('✅ Archivo descargado correctamente');
+  } catch(e){ toast('Error al exportar: '+e.message,'err'); }
+}
+function q(s){return '"'+String(s||'').replace(/"/g,'""')+'"';}
+function dl(csv,name){const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();}
+</script>
+</body>
+</html>
