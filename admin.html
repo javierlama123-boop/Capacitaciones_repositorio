@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -485,11 +484,6 @@ select:disabled{opacity:0.5;cursor:not-allowed}
           </div>
 
           <div class="form-group">
-            <label>Lugar *</label>
-            <input type="text" id="f-lugar" placeholder="Ej: Sala de Conferencias A"/>
-          </div>
-
-          <div class="form-group">
             <label>Fecha *</label>
             <input type="date" id="f-fecha"/>
           </div>
@@ -838,7 +832,7 @@ function renderDashboard(){
       <div>
         ${t.area ? `<span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--navy);opacity:0.6">${t.area}</span><br/>` : ''}
         <span style="font-size:0.9rem;font-weight:600">${t.nombre}</span>
-        <div style="font-size:0.74rem;color:var(--muted);margin-top:0.2rem">📍 ${t.lugar} · 📅 ${fmtDate(t.fecha)}</div>
+        <div style="font-size:0.74rem;color:var(--muted);margin-top:0.2rem">📅 ${fmtDate(t.fecha)}</div>
       </div>
       <span class="tag tag-att">👥 ${t.totalAsistentes||0}</span>
     </div>`).join('');
@@ -848,13 +842,12 @@ async function registrar(){
   if(!window._fbReady){ toast('Firebase no listo','err'); return; }
   const area     = document.getElementById('f-area').value.trim();
   const nombre   = document.getElementById('f-nombre').value.trim();
-  const lugar    = document.getElementById('f-lugar').value.trim();
   const fecha    = document.getElementById('f-fecha').value;
   const duracion = document.getElementById('f-duracion').value;
   const relator  = document.getElementById('f-relator').value.trim();
   const desc     = document.getElementById('f-desc').value.trim();
 
-  if(!area||!nombre||!lugar||!fecha||!duracion){
+  if(!area||!nombre||!fecha||!duracion){
     toast('Completa los campos obligatorios (*)','err'); return;
   }
 
@@ -863,7 +856,7 @@ async function registrar(){
 
   try {
     const ref = await window._addDoc(window._collection(window._db,'capacitaciones'),{
-      area, nombre, lugar, fecha,
+      area, nombre, fecha,
       duracion: parseFloat(duracion),
       relator, desc,
       totalAsistentes: 0,
@@ -875,7 +868,7 @@ async function registrar(){
     document.getElementById('f-nombre').innerHTML = '<option value="">— Selecciona un área primero —</option>';
     document.getElementById('f-nombre').disabled = true;
     document.getElementById('nombre-hint').textContent = 'Selecciona el área para ver las capacitaciones disponibles';
-    ['f-lugar','f-fecha','f-duracion','f-relator','f-desc'].forEach(i=>document.getElementById(i).value='');
+    ['f-fecha','f-duracion','f-relator','f-desc'].forEach(i=>document.getElementById(i).value='');
 
     toast('✅ Capacitación registrada en Firebase');
     showPage('lista');
@@ -896,7 +889,6 @@ function renderLista(){
         ${t.area ? `<span class="t-area-badge">${t.area}</span>` : ''}
         <div class="t-name">${t.nombre}</div>
         <div class="t-meta">
-          <span class="tag">📍 ${t.lugar}</span>
           <span class="tag">📅 ${fmtDate(t.fecha)}</span>
           <span class="tag">⏱ ${t.duracion}h</span>
           ${t.relator?`<span class="tag">👤 ${t.relator}</span>`:''}
@@ -928,7 +920,7 @@ function showQR(id){
   document.getElementById('qr-subtitle').textContent = t.nombre;
   document.getElementById('qr-hint').innerHTML =
     `${t.area ? `<strong style="color:var(--navy)">${t.area}</strong><br/>` : ''}
-     <strong style="color:var(--fg)">${t.lugar}</strong> · 📅 ${fmtDate(t.fecha)} · ⏱ ${t.duracion}h<br/>
+     📅 ${fmtDate(t.fecha)} · ⏱ ${t.duracion}h<br/>
      <span style="font-size:0.7rem;display:block;margin-top:0.3rem">Los asistentes escanean este QR con su celular para registrar asistencia.</span>`;
   document.getElementById('qrcode').innerHTML='';
   new QRCode(document.getElementById('qrcode'),{
@@ -959,7 +951,7 @@ function imprimirQR(){
   <h2>${t.nombre}</h2>
   <p>Escanea para registrar tu asistencia</p>
   <img src="${canvas.toDataURL()}"/>
-  <div class="meta">📍 ${t.lugar} &nbsp;|&nbsp; 📅 ${fmtDate(t.fecha)} &nbsp;|&nbsp; ⏱ ${t.duracion}h${t.relator?' &nbsp;|&nbsp; 👤 '+t.relator:''}</div>
+  <div class="meta">📅 ${fmtDate(t.fecha)} &nbsp;|&nbsp; ⏱ ${t.duracion}h${t.relator?' &nbsp;|&nbsp; 👤 '+t.relator:''}</div>
   <div class="note">☁️ Conectado a Firebase · Asistencia en tiempo real</div>
   </body></html>`);
   w.document.close(); setTimeout(()=>w.print(),400);
@@ -995,8 +987,8 @@ async function exportCSV(type){
   toast('Preparando exportación...');
   try {
     if(type==='cap'){
-      const csv = 'ID,Área,Nombre del Curso,Lugar,Fecha,Duración (hrs),Relator,Descripción,N° Asistentes\n'
-        +trainings.map(t=>[t.id,q(t.area||''),q(t.nombre),q(t.lugar),t.fecha,t.duracion,q(t.relator||''),q(t.desc||''),(t.totalAsistentes||0)].join(',')).join('\n');
+      const csv = 'ID,Área,Nombre del Curso,Fecha,Duración (hrs),Relator,Descripción,N° Asistentes\n'
+        +trainings.map(t=>[t.id,q(t.area||''),q(t.nombre),t.fecha,t.duracion,q(t.relator||''),q(t.desc||''),(t.totalAsistentes||0)].join(',')).join('\n');
       dl(csv,'capacitaciones.csv');
     } else {
       let rows=['ID Capacitación,Área,Nombre del Curso,Nombre Completo,RUT,Área Participante,Hora de Registro'];
