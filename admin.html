@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -33,6 +33,7 @@ window._doc        = doc;
 window._onSnapshot = onSnapshot;
 window._query      = query;
 window._orderBy    = orderBy;
+window._setDoc        = setDoc;
 window._storage        = getStorage(app);
 window._ref            = ref;
 window._uploadBytesResumable = uploadBytesResumable;
@@ -421,6 +422,49 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 .chart-sub{font-size:0.72rem;color:var(--muted);margin-bottom:1rem}
 .chart-wrap{position:relative;height:220px}
 
+/* ── MANTENEDOR ──────────────────────────────────────────────── */
+.area-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.6rem 0.8rem;border-radius:7px;cursor:pointer;
+  font-size:0.84rem;font-weight:500;color:var(--fg);
+  border:1.5px solid transparent;transition:all 0.15s;
+  background:var(--bg);
+}
+.area-btn:hover{border-color:var(--border-strong);background:#fff}
+.area-btn.active{
+  background:rgba(0,43,79,0.07);border-color:var(--navy);
+  color:var(--navy);font-weight:700;
+}
+.area-btn .area-del{
+  opacity:0;font-size:0.75rem;color:var(--danger);
+  background:none;border:none;cursor:pointer;padding:0 0.2rem;
+  transition:opacity 0.15s;
+}
+.area-btn:hover .area-del{opacity:1}
+
+.cap-item{
+  display:flex;align-items:center;gap:0.7rem;
+  padding:0.65rem 0.9rem;border-radius:8px;
+  border:1px solid var(--border);background:var(--bg);
+  margin-bottom:0.45rem;
+}
+.cap-item .cap-name{flex:1;font-size:0.85rem;color:var(--fg)}
+.cap-item input{
+  flex:1;font-size:0.85rem;padding:0.3rem 0.6rem;
+  border:1.5px solid var(--navy);border-radius:5px;
+  background:#fff;color:var(--fg);outline:none;
+}
+.cap-item-actions{display:flex;gap:0.35rem;flex-shrink:0}
+.btn-icon{
+  background:none;border:1px solid var(--border);border-radius:5px;
+  padding:0.28rem 0.55rem;cursor:pointer;font-size:0.78rem;
+  color:var(--muted);transition:all 0.15s;font-family:'Barlow',sans-serif;
+}
+.btn-icon:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-icon.del:hover{background:var(--danger);border-color:var(--danger)}
+.btn-icon.save{color:var(--success);border-color:var(--success)}
+.btn-icon.save:hover{background:var(--success);color:#fff}
+
 @media(max-width:700px){aside{display:none}main{margin-left:0}}
 /* ── FILE UPLOAD MODAL ───────────────────────────────────────── */
 .files-modal{
@@ -516,6 +560,9 @@ select:disabled{opacity:0.5;cursor:not-allowed}
     <div class="nav-section">Gestión</div>
     <div class="nav-item" onclick="showPage('lista')" id="nav-lista">
       <span class="nav-icon">📋</span> Capacitaciones
+    </div>
+    <div class="nav-item" onclick="showPage('mantenedor')" id="nav-mantenedor">
+      <span class="nav-icon">⚙️</span> Mantenedor Matriz
     </div>
     <div class="nav-item" onclick="showPage('exportar')" id="nav-exportar">
       <span class="nav-icon">📥</span> Exportar Datos
@@ -714,6 +761,42 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         </div>
       </div>
       <div id="lista-container"><span class="loader"></span>Cargando...</div>
+    </div>
+
+    <!-- ── MANTENEDOR MATRIZ ──────────────────────────────────── -->
+    <div class="page" id="page-mantenedor">
+      <div class="page-header">
+        <div>
+          <h2>Mantenedor Matriz</h2>
+          <p>Agrega, edita o elimina capacitaciones por area</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:1.4rem;align-items:start">
+
+        <!-- Panel izquierdo: selector de area -->
+        <div>
+          <div class="card" style="padding:1.2rem">
+            <div class="section-label" style="margin-bottom:0.8rem">Selecciona un area</div>
+            <div id="mant-area-list" style="display:flex;flex-direction:column;gap:0.3rem"></div>
+          </div>
+          <div class="card" style="padding:1.2rem;margin-top:0">
+            <div class="section-label" style="margin-bottom:0.8rem">Nueva area</div>
+            <div style="display:flex;gap:0.5rem">
+              <input type="text" id="mant-new-area" placeholder="Nombre del area" style="flex:1;font-size:0.83rem;padding:0.55rem 0.8rem"/>
+              <button class="btn btn-primary btn-sm" onclick="addArea()">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel derecho: capacitaciones del area -->
+        <div class="card" id="mant-right-panel" style="min-height:400px">
+          <div style="text-align:center;padding:4rem 2rem;color:var(--muted)">
+            <div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3">⚙️</div>
+            <p style="font-size:0.86rem">Selecciona un area para ver y editar sus capacitaciones</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ── EXPORTAR ───────────────────────────────────────────── -->
@@ -1013,8 +1096,9 @@ function fmtDate(d){ return d ? new Date(d+'T12:00:00').toLocaleDateString('es-C
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 const PAGE_TITLES = {
-  dashboard: 'Dashboard', nueva: 'Nueva Capacitación',
-  lista: 'Capacitaciones', exportar: 'Exportar Datos'
+  dashboard: 'Dashboard', nueva: 'Nueva Capacitacion',
+  lista: 'Capacitaciones', exportar: 'Exportar Datos',
+  mantenedor: 'Mantenedor Matriz'
 };
 
 function showPage(name){
@@ -1023,6 +1107,225 @@ function showPage(name){
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
   document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
+  if(name === 'mantenedor') renderMantenedor();
+}
+
+// ── MANTENEDOR ────────────────────────────────────────────────
+// La matriz se guarda en Firestore: coleccion "matriz" / doc por area
+// Si no hay datos en Firestore, se usa la MATRIZ local como semilla
+
+let mantArea = null; // area actualmente seleccionada
+let mantData = {};   // copia local de la matriz editable
+
+async function loadMantData(){
+  try {
+    const snap = await window._getDocs(window._collection(window._db,'matriz'));
+    if(snap.empty){
+      // Primera vez: sembrar con la MATRIZ hardcoded
+      mantData = JSON.parse(JSON.stringify(MATRIZ));
+      await saveMantToFirestore();
+    } else {
+      mantData = {};
+      snap.docs.forEach(d => { mantData[d.id] = d.data().caps || []; });
+    }
+  } catch(e){
+    mantData = JSON.parse(JSON.stringify(MATRIZ));
+  }
+}
+
+async function saveMantToFirestore(){
+  for(const [area, caps] of Object.entries(mantData)){
+    const safeId = area.replace(/[^a-zA-Z0-9]/g,'_');
+    await window._addDoc ? null : null; // ensure imported
+    const docRef = window._doc(window._db,'matriz', safeId);
+    await window._setDoc ? window._setDoc(docRef,{area, caps}) : null;
+  }
+}
+
+function renderMantenedor(){
+  if(!Object.keys(mantData).length){
+    loadMantData().then(()=>renderAreaList());
+  } else {
+    renderAreaList();
+  }
+}
+
+function renderAreaList(){
+  const areas = Object.keys(mantData).sort();
+  const el = document.getElementById('mant-area-list');
+  el.innerHTML = areas.map(a => `
+    <div class="area-btn ${a===mantArea?'active':''}" onclick="selectMantArea('${a.replace(/'/g,"\\'")}')">
+      <span>${a}</span>
+      <button class="area-del" onclick="event.stopPropagation();deleteArea('${a.replace(/'/g,"\\'")}')">&#x2715;</button>
+    </div>`).join('');
+  if(mantArea) renderCaps();
+}
+
+function selectMantArea(area){
+  mantArea = area;
+  renderAreaList();
+  renderCaps();
+}
+
+function renderCaps(){
+  const caps = mantData[mantArea] || [];
+  const panel = document.getElementById('mant-right-panel');
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+      <div>
+        <div class="chart-title">${mantArea}</div>
+        <div class="chart-sub">${caps.length} capacitaciones registradas</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addCap()">+ Agregar capacitacion</button>
+    </div>
+    <div id="mant-caps-list">
+      ${caps.length ? caps.map((c,i) => capItemHTML(c,i)).join('') : '<div style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Sin capacitaciones en esta area.</div>'}
+    </div>
+    <div id="mant-add-row" style="display:none;margin-top:0.8rem">
+      <div class="cap-item" style="border-color:var(--navy)">
+        <input type="text" id="mant-new-cap" placeholder="Nombre de la nueva capacitacion..."
+               onkeydown="if(event.key==='Enter')saveCap(-1)"/>
+        <div class="cap-item-actions">
+          <button class="btn-icon save" onclick="saveCap(-1)">Guardar</button>
+          <button class="btn-icon del" onclick="cancelAdd()">Cancelar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function capItemHTML(cap, idx){
+  return `<div class="cap-item" id="caprow-${idx}">
+    <span class="cap-name" id="capname-${idx}">${cap}</span>
+    <div class="cap-item-actions">
+      <button class="btn-icon" onclick="editCap(${idx})">Editar</button>
+      <button class="btn-icon del" onclick="deleteCap(${idx})">Eliminar</button>
+    </div>
+  </div>`;
+}
+
+function editCap(idx){
+  const cap = mantData[mantArea][idx];
+  const row = document.getElementById('caprow-'+idx);
+  row.innerHTML = `
+    <input type="text" id="edit-cap-${idx}" value="${cap.replace(/"/g,'&quot;')}"
+           onkeydown="if(event.key==='Enter')saveEditCap(${idx})"/>
+    <div class="cap-item-actions">
+      <button class="btn-icon save" onclick="saveEditCap(${idx})">Guardar</button>
+      <button class="btn-icon del" onclick="cancelEdit(${idx},'${cap.replace(/'/g,"\\'")}')">Cancelar</button>
+    </div>`;
+  document.getElementById('edit-cap-'+idx).focus();
+}
+
+function cancelEdit(idx, original){
+  const row = document.getElementById('caprow-'+idx);
+  row.innerHTML = `
+    <span class="cap-name" id="capname-${idx}">${original}</span>
+    <div class="cap-item-actions">
+      <button class="btn-icon" onclick="editCap(${idx})">Editar</button>
+      <button class="btn-icon del" onclick="deleteCap(${idx})">Eliminar</button>
+    </div>`;
+}
+
+async function saveEditCap(idx){
+  const val = document.getElementById('edit-cap-'+idx).value.trim();
+  if(!val){ toast('El nombre no puede estar vacio','err'); return; }
+  mantData[mantArea][idx] = val;
+  await persistMatriz();
+  renderCaps();
+  syncMatrizToSelects();
+  toast('Capacitacion actualizada');
+}
+
+async function deleteCap(idx){
+  if(!confirm('Eliminar esta capacitacion de la matriz?')) return;
+  mantData[mantArea].splice(idx,1);
+  await persistMatriz();
+  renderCaps();
+  syncMatrizToSelects();
+  toast('Capacitacion eliminada');
+}
+
+function addCap(){
+  document.getElementById('mant-add-row').style.display='block';
+  document.getElementById('mant-new-cap').focus();
+}
+
+function cancelAdd(){
+  document.getElementById('mant-add-row').style.display='none';
+  document.getElementById('mant-new-cap').value='';
+}
+
+async function saveCap(idx){
+  const val = document.getElementById('mant-new-cap').value.trim();
+  if(!val){ toast('Ingresa un nombre','err'); return; }
+  if(!mantData[mantArea]) mantData[mantArea]=[];
+  mantData[mantArea].push(val);
+  mantData[mantArea].sort();
+  await persistMatriz();
+  cancelAdd();
+  renderCaps();
+  syncMatrizToSelects();
+  toast('Capacitacion agregada');
+}
+
+async function addArea(){
+  const val = document.getElementById('mant-new-area').value.trim();
+  if(!val){ toast('Ingresa el nombre del area','err'); return; }
+  if(mantData[val]){ toast('El area ya existe','err'); return; }
+  mantData[val]=[];
+  await persistMatriz();
+  document.getElementById('mant-new-area').value='';
+  selectMantArea(val);
+  toast('Area creada');
+}
+
+async function deleteArea(area){
+  if(!confirm('Eliminar el area "'+area+'" y todas sus capacitaciones?')) return;
+  delete mantData[area];
+  if(mantArea===area) mantArea=null;
+  await persistMatriz();
+  renderAreaList();
+  if(!mantArea) document.getElementById('mant-right-panel').innerHTML=
+    '<div style="text-align:center;padding:4rem 2rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3">⚙️</div><p style="font-size:0.86rem">Selecciona un area para ver y editar sus capacitaciones</p></div>';
+  syncMatrizToSelects();
+  toast('Area eliminada');
+}
+
+async function persistMatriz(){
+  // Guardar en Firestore coleccion "matriz"
+  try {
+    for(const [area, caps] of Object.entries(mantData)){
+      const safeId = area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
+      await window._setDoc(
+        window._doc(window._db,'matriz',safeId),
+        { area, caps },
+        { merge: false }
+      );
+    }
+    // Actualizar MATRIZ en memoria para que el formulario use los datos frescos
+    Object.assign(MATRIZ, mantData);
+  } catch(e){
+    // Si setDoc no esta disponible, actualizar solo en memoria
+    Object.assign(MATRIZ, mantData);
+    toast('Guardado en memoria (actualiza la pagina para persistir)','err');
+  }
+}
+
+function syncMatrizToSelects(){
+  // Actualizar los selects de area en Nueva Capacitacion y filtros
+  Object.assign(MATRIZ, mantData);
+  const areaSelects = ['f-area','fil-area'];
+  areaSelects.forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const current = sel.value;
+    const firstOpt = id==='f-area' ? '<option value="">- Selecciona un area -</option>'
+                                   : '<option value="">Todas las areas</option>';
+    sel.innerHTML = firstOpt + Object.keys(mantData).sort()
+      .map(a=>`<option${a===current?' selected':''}>${a}</option>`).join('');
+  });
+  // Re-trigger area change if f-area has a value
+  if(document.getElementById('f-area')?.value) onAreaChange();
 }
 
 document.addEventListener('fb-ready', () => {
@@ -1038,6 +1341,8 @@ document.addEventListener('fb-ready', () => {
     filteredTrainings = [...trainings];
     applyFilters();
     renderLista();
+    // Cargar matriz editable en background
+    loadMantData();
   }, err => {
     document.getElementById('conn-text').textContent = 'Sin conexión';
     toast('Error de conexión: '+err.message,'err');
