@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>Registro de Asistencia 路 Multi-X</title>
+<title>Registro de Asistencia · Multi-X</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -268,16 +268,16 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 
 <!-- SIN PARAMS -->
 <div class="state" id="s-noparams">
-  <div class="big-icon">馃搵</div>
+  <div class="big-icon">📋</div>
   <h2>Registro de Asistencia</h2>
-  <p>Esta pantalla debe abrirse escaneando el c贸digo QR de la capacitaci贸n o desde el panel de administraci贸n.</p>
+  <p>Esta pantalla debe abrirse escaneando el codigo QR de la capacitacion o desde el panel de administracion.</p>
 </div>
 
 <!-- ERROR -->
 <div class="state" id="s-error">
-  <div class="big-icon">鈿狅笍</div>
-  <h2>Capacitaci贸n no encontrada</h2>
-  <p>El c贸digo QR puede ser inv谩lido o la capacitaci贸n fue eliminada.<br/>Contacta al administrador.</p>
+  <div class="big-icon">⚠️</div>
+  <h2>Capacitacion no encontrada</h2>
+  <p>El codigo QR puede ser invalido o la capacitacion fue eliminada.<br/>Contacta al administrador.</p>
 </div>
 
 <!-- FORMULARIO -->
@@ -286,25 +286,25 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
     <div class="banner-inner">
       <div class="banner-logo">
         <div class="banner-logo-icon">MX</div>
-        <div class="banner-logo-text">Multi-X 路 Capacitaciones</div>
+        <div class="banner-logo-text">Multi-X · Capacitaciones</div>
       </div>
-      <div class="banner-tag">鉁?Registro de Asistencia</div>
-      <div class="banner-title" id="banner-title">鈥?/div>
+      <div class="banner-tag">✅ Registro de Asistencia</div>
+      <div class="banner-title" id="banner-title">—</div>
       <div class="banner-meta">
         <span class="bmeta" id="banner-area" style="display:none"></span>
-        <span class="bmeta" id="banner-lugar">馃搷 鈥?/span>
-        <span class="bmeta" id="banner-fecha">馃搮 鈥?/span>
-        <span class="bmeta" id="banner-dur">鈴?鈥?/span>
+        <span class="bmeta" id="banner-lugar">📍 —</span>
+        <span class="bmeta" id="banner-fecha">📅 —</span>
+        <span class="bmeta" id="banner-dur">⏱ —</span>
       </div>
     </div>
   </div>
 
   <div class="form-area">
     <div class="form-title">Ingresa tus datos</div>
-    <div class="form-sub">Completa el formulario para confirmar tu participaci贸n.</div>
+    <div class="form-sub">Completa el formulario para confirmar tu participacion.</div>
 
-    <div class="alert alert-warn" id="alert-dup">鈿狅笍 Ya existe un registro con este RUT para esta capacitaci贸n.</div>
-    <div class="alert alert-err" id="alert-err">鉂?Error al guardar. Intenta nuevamente.</div>
+    <div class="alert alert-warn" id="alert-dup">⚠️ Ya existe un registro con este RUT para esta capacitacion.</div>
+    <div class="alert alert-err" id="alert-err">❌ Error al guardar. Intenta nuevamente.</div>
 
     <div class="field">
       <label>Nombre completo <span class="req">*</span></label>
@@ -318,28 +318,28 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
     </div>
 
     <div class="field">
-      <label>脕rea / Departamento</label>
+      <label>Area / Departamento</label>
       <input type="text" id="inp-area" placeholder="Ej: Operaciones"/>
     </div>
 
-    <button class="submit-btn" id="submit-btn" onclick="registrar()">Confirmar Asistencia 鉁?/button>
-    <p class="privacy">鈽侊笍 Tus datos se guardan en Firebase y solo ser谩n usados para el registro de asistencia.</p>
+    <button class="submit-btn" id="submit-btn" onclick="registrar()">Confirmar Asistencia ✓</button>
+    <p class="privacy">☁️ Tus datos se guardan en Firebase y solo seran usados para el registro de asistencia.</p>
   </div>
 </div>
 
-<!-- 脡XITO -->
+<!-- EXITO -->
 <div class="state" id="s-success">
-  <div class="success-circle">鉁?/div>
-  <h2>隆Asistencia registrada!</h2>
-  <p>Tu participaci贸n ha sido confirmada y guardada en el sistema.</p>
-  <div class="success-course" id="success-course">鈥?/div>
+  <div class="success-circle">✓</div>
+  <h2>¡Asistencia registrada!</h2>
+  <p>Tu participacion ha sido confirmada y guardada en el sistema.</p>
+  <div class="success-course" id="success-course">—</div>
   <button class="reset-btn" onclick="resetForm()">Registrar otro participante</button>
-  <div class="countdown">Volviendo autom谩ticamente en <span id="count">8</span>s...</div>
+  <div class="countdown">Volviendo automaticamente en <span id="count">8</span>s...</div>
 </div>
 
 <div class="kiosk-footer">
   <span class="mx-tag">MX</span>
-  Sistema de Capacitaciones 路 脕rea de Recursos Humanos 路 鈽侊笍 Firebase
+  Sistema de Capacitaciones · Area de Recursos Humanos · ☁️ Firebase
 </div>
 
 <script>
@@ -350,7 +350,7 @@ let countdownTimer = null;
 const fbTimeout = setTimeout(() => {
   if (document.getElementById('s-loading').classList.contains('active')) {
     document.getElementById('s-loading').querySelector('p').textContent =
-      'Error de conexi贸n. Verifica tu conexi贸n a internet e intenta de nuevo.';
+      'Error de conexion. Verifica tu conexion a internet e intenta de nuevo.';
   }
 }, 10000);
 
@@ -391,11 +391,11 @@ function validarRut(rutCompleto) {
   const cuerpo = limpio.slice(0, -1);
   const dv = limpio.slice(-1);
 
-  if (!/^\d+$/.test(cuerpo)) return { valido: false, msg: 'El cuerpo del RUT debe ser num茅rico' };
-  if (cuerpo.length < 7 || cuerpo.length > 8) return { valido: false, msg: 'El RUT debe tener 7 u 8 d铆gitos' };
+  if (!/^\d+$/.test(cuerpo)) return { valido: false, msg: 'El cuerpo del RUT debe ser numerico' };
+  if (cuerpo.length < 7 || cuerpo.length > 8) return { valido: false, msg: 'El RUT debe tener 7 u 8 digitos' };
 
   const dvEsperado = calcularDV(cuerpo);
-  if (dv !== dvEsperado) return { valido: false, msg: `D铆gito verificador incorrecto (esperado: ${dvEsperado.toUpperCase()})` };
+  if (dv !== dvEsperado) return { valido: false, msg: `Digito verificador incorrecto (esperado: ${dvEsperado.toUpperCase()})` };
 
   return { valido: true, msg: 'RUT valido' };
 }
@@ -427,13 +427,13 @@ document.addEventListener('fb-ready', async () => {
     currentCap = { id: snap.id, ...snap.data() };
 
     document.getElementById('banner-title').textContent = currentCap.nombre;
-    document.getElementById('banner-lugar').textContent = '馃搷 '+currentCap.lugar;
-    document.getElementById('banner-fecha').textContent = '馃搮 '+fmtDate(currentCap.fecha);
-    document.getElementById('banner-dur').textContent   = '鈴?'+currentCap.duracion+'h';
+    document.getElementById('banner-lugar').textContent = '📍 '+currentCap.lugar;
+    document.getElementById('banner-fecha').textContent = '📅 '+fmtDate(currentCap.fecha);
+    document.getElementById('banner-dur').textContent   = '⏱ '+currentCap.duracion+'h';
 
     if (currentCap.area) {
       const areaEl = document.getElementById('banner-area');
-      areaEl.textContent = '馃彿 '+currentCap.area;
+      areaEl.textContent = '🏷 '+currentCap.area;
       areaEl.style.display = '';
     }
 
@@ -493,17 +493,17 @@ async function registrar(){
       { totalAsistentes: window._increment(1) }
     );
 
-    // Mostrar 茅xito
+    // Mostrar exito
     document.getElementById('success-course').innerHTML =
       (currentCap.area ? `<div style="font-size:0.72rem;opacity:0.75;margin-bottom:0.3rem">${currentCap.area}</div>` : '')
-      + '馃摎 '+currentCap.nombre;
+      + '📚 '+currentCap.nombre;
     showState('s-success');
     startCountdown();
 
   } catch(e){
     console.error(e);
     document.getElementById('alert-err').style.display='block';
-    document.getElementById('alert-err').textContent='鉂?Error: '+e.message;
+    document.getElementById('alert-err').textContent='❌ Error: '+e.message;
     btn.disabled=false; btn.innerHTML='Confirmar Asistencia';
   }
 }
