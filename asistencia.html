@@ -366,10 +366,10 @@ function showState(id){
 }
 
 function fmtDate(d){
-  return d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}) : '鈥?;
+  return d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}) : '\u2014';
 }
 
-// 鈹€鈹€ VALIDADOR RUT 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// -- VALIDADOR RUT
 function calcularDV(rut) {
   let suma = 0;
   let multiplicador = 2;
@@ -397,7 +397,7 @@ function validarRut(rutCompleto) {
   const dvEsperado = calcularDV(cuerpo);
   if (dv !== dvEsperado) return { valido: false, msg: `D铆gito verificador incorrecto (esperado: ${dvEsperado.toUpperCase()})` };
 
-  return { valido: true, msg: '鉁?RUT v谩lido' };
+  return { valido: true, msg: 'RUT valido' };
 }
 
 function validarRutEnVivo(input) {
@@ -412,7 +412,7 @@ function validarRutEnVivo(input) {
   fb.className = 'rut-feedback ' + (result.valido ? 'ok' : 'err');
 }
 
-// 鈹€鈹€ FIREBASE INIT 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// -- FIREBASE INIT
 document.addEventListener('fb-ready', async () => {
   clearTimeout(fbTimeout);
   const params = new URLSearchParams(window.location.search);
@@ -445,7 +445,7 @@ document.addEventListener('fb-ready', async () => {
   }
 });
 
-// 鈹€鈹€ REGISTRAR 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// -- REGISTRAR
 async function registrar(){
   const nombre = document.getElementById('inp-nombre').value.trim();
   const rut    = document.getElementById('inp-rut').value.trim();
@@ -461,7 +461,7 @@ async function registrar(){
   const rutResult = validarRut(rut);
   if (!rutResult.valido) {
     const fb = document.getElementById('rut-feedback');
-    fb.textContent = rutResult.msg || 'RUT inv谩lido 鈥?verifica el d铆gito verificador';
+    fb.textContent = rutResult.msg || 'RUT invalido - verifica el digito verificador';
     fb.className = 'rut-feedback err';
     markError('inp-rut');
     return;
@@ -480,7 +480,7 @@ async function registrar(){
     if(!dupSnap.empty){
       document.getElementById('alert-dup').style.display='block';
       markError('inp-rut');
-      btn.disabled=false; btn.innerHTML='Confirmar Asistencia 鉁?;
+      btn.disabled=false; btn.innerHTML='Confirmar Asistencia';
       return;
     }
 
@@ -504,7 +504,7 @@ async function registrar(){
     console.error(e);
     document.getElementById('alert-err').style.display='block';
     document.getElementById('alert-err').textContent='鉂?Error: '+e.message;
-    btn.disabled=false; btn.innerHTML='Confirmar Asistencia 鉁?;
+    btn.disabled=false; btn.innerHTML='Confirmar Asistencia';
   }
 }
 
@@ -534,7 +534,7 @@ function resetForm(){
   document.getElementById('rut-feedback').textContent='';
   document.getElementById('rut-feedback').className='rut-feedback';
   document.getElementById('submit-btn').disabled=false;
-  document.getElementById('submit-btn').innerHTML='Confirmar Asistencia 鉁?;
+  document.getElementById('submit-btn').innerHTML='Confirmar Asistencia';
   showState('s-form');
   setTimeout(()=>document.getElementById('inp-nombre').focus(),200);
 }
