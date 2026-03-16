@@ -6,6 +6,7 @@
 <title>Panel de Capacitaciones · Multi-X</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -357,6 +358,57 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 }
 .recent-row:last-child{border-bottom:none}
 
+/* ── FILTERS ─────────────────────────────────────────────────── */
+.filter-bar{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:1.2rem 1.6rem;
+  margin-bottom:1.4rem;
+  display:grid;grid-template-columns:repeat(4,1fr) auto;
+  gap:0.8rem;align-items:end;
+}
+.filter-group{display:flex;flex-direction:column;gap:0.3rem}
+.filter-group label{font-size:0.65rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted)}
+.filter-group input,.filter-group select{
+  font-family:'Barlow',sans-serif;font-size:0.83rem;
+  padding:0.55rem 0.8rem;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:7px;color:var(--fg);outline:none;
+  transition:border-color 0.2s;
+}
+.filter-group input:focus,.filter-group select:focus{border-color:var(--navy)}
+.filter-group select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7f8e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 0.8rem center;
+  padding-right:2rem;appearance:none;-webkit-appearance:none;cursor:pointer;
+}
+.filter-summary{
+  font-size:0.75rem;color:var(--muted);margin-bottom:1rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.filter-summary strong{color:var(--navy)}
+.btn-clear{
+  font-family:'Barlow',sans-serif;font-size:0.78rem;font-weight:600;
+  padding:0.55rem 1rem;border-radius:7px;border:1.5px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;
+  transition:all 0.18s;white-space:nowrap;
+}
+.btn-clear:hover{border-color:var(--salmon);color:var(--salmon)}
+
+/* ── CHARTS ──────────────────────────────────────────────────── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.4rem}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:1.4rem;
+}
+.chart-card.wide{grid-column:1/-1}
+.chart-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem;font-weight:700;color:var(--navy);
+  margin-bottom:0.2rem;
+}
+.chart-sub{font-size:0.72rem;color:var(--muted);margin-bottom:1rem}
+.chart-wrap{position:relative;height:220px}
+
 @media(max-width:700px){aside{display:none}main{margin-left:0}}
 </style>
 </head>
@@ -418,27 +470,95 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <div class="page-header">
         <div>
           <h2>Dashboard</h2>
-          <p>Resumen de capacitaciones registradas en Firebase</p>
+          <p>Resumen y analisis de capacitaciones</p>
         </div>
       </div>
 
+      <!-- FILTROS -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Area</label>
+          <select id="fil-area" onchange="applyFilters()">
+            <option value="">Todas las areas</option>
+            <option>Administracion y servicios</option>
+            <option>Agua Dulce</option>
+            <option>Agua Mar</option>
+            <option>Bodega / Abastecimiento</option>
+            <option>DIVING-X</option>
+            <option>Frigorifico</option>
+            <option>Laboratorio</option>
+            <option>Patio operaciones</option>
+            <option>Proceso Primario</option>
+            <option>Processing</option>
+            <option>Seguridad</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Nombre capacitacion</label>
+          <input type="text" id="fil-nombre" placeholder="Buscar..." oninput="applyFilters()"/>
+        </div>
+        <div class="filter-group">
+          <label>Relator</label>
+          <input type="text" id="fil-relator" placeholder="Buscar relator..." oninput="applyFilters()"/>
+        </div>
+        <div class="filter-group">
+          <label>Fecha desde / hasta</label>
+          <div style="display:flex;gap:0.4rem">
+            <input type="date" id="fil-desde" onchange="applyFilters()" style="flex:1;min-width:0"/>
+            <input type="date" id="fil-hasta" onchange="applyFilters()" style="flex:1;min-width:0"/>
+          </div>
+        </div>
+        <button class="btn-clear" onclick="clearFilters()">Limpiar filtros</button>
+      </div>
+
+      <!-- STATS -->
       <div class="stats-grid">
         <div class="stat-card">
-          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-num" id="stat-total">-</div>
           <div class="stat-label">Capacitaciones</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="stat-att">—</div>
+          <div class="stat-num" id="stat-att">-</div>
           <div class="stat-label">Total Asistentes</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num" id="stat-hrs">—</div>
+          <div class="stat-num" id="stat-hrs">-</div>
           <div class="stat-label">Horas Capacitadas</div>
         </div>
       </div>
 
+      <!-- GRAFICOS -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Capacitaciones por Area</div>
+          <div class="chart-sub">Distribucion del total de capacitaciones dictadas por area</div>
+          <div class="chart-wrap"><canvas id="chart-area"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Asistentes por Area</div>
+          <div class="chart-sub">Total de participantes registrados por area</div>
+          <div class="chart-wrap"><canvas id="chart-att"></canvas></div>
+        </div>
+        <div class="chart-card wide">
+          <div class="chart-title">Top 10 Capacitaciones mas Dictadas</div>
+          <div class="chart-sub">Cursos con mayor frecuencia de realizacion</div>
+          <div class="chart-wrap" style="height:260px"><canvas id="chart-top"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Capacitaciones por Mes</div>
+          <div class="chart-sub">Evolucion mensual del ultimo ano</div>
+          <div class="chart-wrap"><canvas id="chart-mes"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Promedio Asistentes por Area</div>
+          <div class="chart-sub">Promedio de participantes por capacitacion en cada area</div>
+          <div class="chart-wrap"><canvas id="chart-prom"></canvas></div>
+        </div>
+      </div>
+
+      <!-- RECIENTES -->
       <div class="card">
-        <div class="section-label">Capacitaciones Recientes</div>
+        <div class="section-label">Capacitaciones Recientes <span id="filter-count" style="font-weight:400;color:var(--muted);font-size:0.7rem"></span></div>
         <div id="recent-list"><span class="loader"></span>Cargando...</div>
       </div>
     </div>
@@ -807,7 +927,8 @@ document.addEventListener('fb-ready', () => {
   );
   window._onSnapshot(q, snap => {
     trainings = snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderDashboard();
+    filteredTrainings = [...trainings];
+    applyFilters();
     renderLista();
   }, err => {
     document.getElementById('conn-text').textContent = 'Sin conexión';
@@ -815,27 +936,253 @@ document.addEventListener('fb-ready', () => {
   });
 });
 
+// ── CHARTS STATE ─────────────────────────────────────────────
+let charts = {};
+let filteredTrainings = [];
+
+function destroyChart(id){
+  if(charts[id]){ charts[id].destroy(); delete charts[id]; }
+}
+
+const AREA_COLORS = [
+  '#002B4F','#E8523A','#1a9e6e','#f0a500','#7b5ea7',
+  '#0077b6','#d63b2a','#2d9cdb','#27ae60','#e67e22','#8e44ad'
+];
+
+// ── FILTERS ──────────────────────────────────────────────────
+function applyFilters(){
+  const area    = (document.getElementById('fil-area').value||'').toLowerCase();
+  const nombre  = (document.getElementById('fil-nombre').value||'').toLowerCase();
+  const relator = (document.getElementById('fil-relator').value||'').toLowerCase();
+  const desde   = document.getElementById('fil-desde').value;
+  const hasta   = document.getElementById('fil-hasta').value;
+
+  filteredTrainings = trainings.filter(t => {
+    if(area   && !(t.area||'').toLowerCase().includes(area))     return false;
+    if(nombre && !(t.nombre||'').toLowerCase().includes(nombre)) return false;
+    if(relator&& !(t.relator||'').toLowerCase().includes(relator))return false;
+    if(desde  && t.fecha < desde) return false;
+    if(hasta  && t.fecha > hasta) return false;
+    return true;
+  });
+
+  renderDashboard();
+}
+
+function clearFilters(){
+  ['fil-area','fil-nombre','fil-relator','fil-desde','fil-hasta'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  filteredTrainings = [...trainings];
+  renderDashboard();
+}
+
+// ── RENDER DASHBOARD ─────────────────────────────────────────
 function renderDashboard(){
-  const totalAtt = trainings.reduce((s,t)=>s+(t.totalAsistentes||0),0);
-  const totalHrs = trainings.reduce((s,t)=>s+(parseFloat(t.duracion)||0),0);
-  document.getElementById('stat-total').textContent = trainings.length;
+  const data = filteredTrainings.length > 0 || trainings.length === 0
+    ? filteredTrainings : trainings;
+
+  // Stats
+  const totalAtt = data.reduce((s,t)=>s+(t.totalAsistentes||0),0);
+  const totalHrs = data.reduce((s,t)=>s+(parseFloat(t.duracion)||0),0);
+  document.getElementById('stat-total').textContent = data.length;
   document.getElementById('stat-att').textContent   = totalAtt;
   document.getElementById('stat-hrs').textContent   = totalHrs%1===0?totalHrs:totalHrs.toFixed(1);
 
+  const isFiltered = filteredTrainings.length !== trainings.length;
+  const fc = document.getElementById('filter-count');
+  if(fc) fc.textContent = isFiltered ? `(${data.length} de ${trainings.length} resultados)` : '';
+
+  // Recent list
   const el = document.getElementById('recent-list');
-  if(!trainings.length){
-    el.innerHTML='<div style="color:var(--muted);font-size:0.85rem">Sin registros aún.</div>';
-    return;
+  if(!data.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Sin resultados para los filtros seleccionados.</div>';
+  } else {
+    el.innerHTML = data.slice(0,8).map(t=>`
+      <div class="recent-row">
+        <div>
+          ${t.area?`<span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--navy);opacity:0.7">${t.area}</span><br/>`:''}
+          <span style="font-size:0.9rem;font-weight:600">${t.nombre}</span>
+          <div style="font-size:0.74rem;color:var(--muted);margin-top:0.2rem">
+            ${t.relator?`👤 ${t.relator} &nbsp;·&nbsp; `:''}📅 ${fmtDate(t.fecha)}
+          </div>
+        </div>
+        <span class="tag tag-att">👥 ${t.totalAsistentes||0}</span>
+      </div>`).join('');
   }
-  el.innerHTML = trainings.slice(0,5).map(t=>`
-    <div class="recent-row">
-      <div>
-        ${t.area ? `<span style="font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--navy);opacity:0.6">${t.area}</span><br/>` : ''}
-        <span style="font-size:0.9rem;font-weight:600">${t.nombre}</span>
-        <div style="font-size:0.74rem;color:var(--muted);margin-top:0.2rem">📅 ${fmtDate(t.fecha)}</div>
-      </div>
-      <span class="tag tag-att">👥 ${t.totalAsistentes||0}</span>
-    </div>`).join('');
+
+  renderCharts(data);
+}
+
+// ── CHARTS ───────────────────────────────────────────────────
+function renderCharts(data){
+  const defaults = {
+    font: { family: "'Barlow', sans-serif", size: 11 },
+    color: '#6b7f8e'
+  };
+  Chart.defaults.font = defaults.font;
+  Chart.defaults.color = defaults.color;
+
+  // 1. Capacitaciones por area (doughnut)
+  const areaCount = {};
+  data.forEach(t=>{ const a=t.area||'Sin area'; areaCount[a]=(areaCount[a]||0)+1; });
+  const areaLabels = Object.keys(areaCount).sort((a,b)=>areaCount[b]-areaCount[a]);
+  destroyChart('area');
+  const ctxA = document.getElementById('chart-area');
+  if(ctxA && areaLabels.length){
+    charts['area'] = new Chart(ctxA, {
+      type:'doughnut',
+      data:{
+        labels: areaLabels,
+        datasets:[{
+          data: areaLabels.map(a=>areaCount[a]),
+          backgroundColor: AREA_COLORS.slice(0,areaLabels.length),
+          borderWidth:2, borderColor:'#fff'
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:'right', labels:{ boxWidth:12, padding:10, font:{size:10} } },
+          tooltip:{ callbacks:{ label: ctx=>`${ctx.label}: ${ctx.raw} capacitaciones` } }
+        }
+      }
+    });
+  }
+
+  // 2. Asistentes por area (bar horizontal)
+  const areaAtt = {};
+  data.forEach(t=>{ const a=t.area||'Sin area'; areaAtt[a]=(areaAtt[a]||0)+(t.totalAsistentes||0); });
+  const attLabels = Object.keys(areaAtt).sort((a,b)=>areaAtt[b]-areaAtt[a]);
+  destroyChart('att');
+  const ctxB = document.getElementById('chart-att');
+  if(ctxB && attLabels.length){
+    charts['att'] = new Chart(ctxB, {
+      type:'bar',
+      data:{
+        labels: attLabels,
+        datasets:[{
+          label:'Asistentes',
+          data: attLabels.map(a=>areaAtt[a]),
+          backgroundColor: AREA_COLORS.slice(0,attLabels.length),
+          borderRadius:4, borderSkipped:false
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ grid:{color:'rgba(0,0,0,0.05)'}, ticks:{font:{size:10}} },
+          y:{ grid:{display:false}, ticks:{font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  // 3. Top 10 capacitaciones mas dictadas (bar)
+  const nombreCount = {};
+  data.forEach(t=>{ const n=t.nombre||'Sin nombre'; nombreCount[n]=(nombreCount[n]||0)+1; });
+  const top10 = Object.entries(nombreCount).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  destroyChart('top');
+  const ctxT = document.getElementById('chart-top');
+  if(ctxT && top10.length){
+    const shortLabels = top10.map(([n])=> n.length>40 ? n.substring(0,40)+'...' : n);
+    charts['top'] = new Chart(ctxT, {
+      type:'bar',
+      data:{
+        labels: shortLabels,
+        datasets:[{
+          label:'Veces dictada',
+          data: top10.map(([,v])=>v),
+          backgroundColor:'#002B4F',
+          borderRadius:4, borderSkipped:false
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ callbacks:{ title: (items)=>top10[items[0].dataIndex][0] } }
+        },
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:9}, maxRotation:30} },
+          y:{ grid:{color:'rgba(0,0,0,0.05)'}, ticks:{stepSize:1, font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  // 4. Capacitaciones por mes (line)
+  const now = new Date();
+  const months = [];
+  const monthCount = {};
+  for(let i=11;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('es-CL',{month:'short',year:'2-digit'});
+    months.push({key,label});
+    monthCount[key]=0;
+  }
+  data.forEach(t=>{
+    if(t.fecha){ const key=t.fecha.substring(0,7); if(monthCount[key]!==undefined) monthCount[key]++; }
+  });
+  destroyChart('mes');
+  const ctxM = document.getElementById('chart-mes');
+  if(ctxM){
+    charts['mes'] = new Chart(ctxM, {
+      type:'line',
+      data:{
+        labels: months.map(m=>m.label),
+        datasets:[{
+          label:'Capacitaciones',
+          data: months.map(m=>monthCount[m.key]),
+          borderColor:'#E8523A', backgroundColor:'rgba(232,82,58,0.08)',
+          borderWidth:2, pointRadius:4, pointBackgroundColor:'#E8523A',
+          fill:true, tension:0.3
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:10}} },
+          y:{ grid:{color:'rgba(0,0,0,0.05)'}, ticks:{stepSize:1, font:{size:10}}, beginAtZero:true }
+        }
+      }
+    });
+  }
+
+  // 5. Promedio asistentes por area (bar)
+  const areaTot = {}; const areaN = {};
+  data.forEach(t=>{
+    const a=t.area||'Sin area';
+    areaTot[a]=(areaTot[a]||0)+(t.totalAsistentes||0);
+    areaN[a]=(areaN[a]||0)+1;
+  });
+  const promLabels = Object.keys(areaTot).sort((a,b)=>(areaTot[b]/areaN[b])-(areaTot[a]/areaN[a]));
+  destroyChart('prom');
+  const ctxP = document.getElementById('chart-prom');
+  if(ctxP && promLabels.length){
+    charts['prom'] = new Chart(ctxP, {
+      type:'bar',
+      data:{
+        labels: promLabels,
+        datasets:[{
+          label:'Promedio asistentes',
+          data: promLabels.map(a=>(areaTot[a]/areaN[a]).toFixed(1)),
+          backgroundColor:'#1a9e6e',
+          borderRadius:4, borderSkipped:false
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:9}, maxRotation:30} },
+          y:{ grid:{color:'rgba(0,0,0,0.05)'}, beginAtZero:true, ticks:{font:{size:10}} }
+        }
+      }
+    });
+  }
 }
 
 async function registrar(){
