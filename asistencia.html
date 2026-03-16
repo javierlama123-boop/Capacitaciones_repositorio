@@ -33,7 +33,7 @@ window._getDocs    = getDocs;
 window._updateDoc  = updateDoc;
 window._increment  = increment;
 window._fbReady    = true;
-document.dispatchEvent(new Event('fb-ready'));
+setTimeout(() => document.dispatchEvent(new Event('fb-ready')), 0);
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -346,6 +346,14 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 let currentCap = null;
 let countdownTimer = null;
 
+// Timeout de seguridad: si Firebase no responde en 10s, mostrar error
+const fbTimeout = setTimeout(() => {
+  if (document.getElementById('s-loading').classList.contains('active')) {
+    document.getElementById('s-loading').querySelector('p').textContent =
+      'Error de conexi贸n. Verifica tu conexi贸n a internet e intenta de nuevo.';
+  }
+}, 10000);
+
 function showState(id){
   document.querySelectorAll('.state').forEach(s=>s.classList.remove('active'));
   const form = document.getElementById('s-form');
@@ -406,6 +414,7 @@ function validarRutEnVivo(input) {
 
 // 鈹€鈹€ FIREBASE INIT 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 document.addEventListener('fb-ready', async () => {
+  clearTimeout(fbTimeout);
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
 
