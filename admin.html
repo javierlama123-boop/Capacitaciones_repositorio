@@ -445,6 +445,11 @@ select:disabled{opacity:0.5;cursor:not-allowed}
     <div class="nav-item" onclick="showPage('exportar')" id="nav-exportar">
       <span class="nav-icon">📥</span> Exportar Datos
     </div>
+
+    <div class="nav-section">Configuración</div>
+    <div class="nav-item" onclick="showPage('matriz'); renderMatriz()" id="nav-matriz">
+      <span class="nav-icon">🗂️</span> Mantenedor Matriz
+    </div>
   </nav>
 
   <div class="sidebar-footer">
@@ -676,6 +681,85 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <div class="export-info">
           <strong>¿Cómo abrir en Excel?</strong><br/>
           Excel → Datos → Desde texto/CSV → selecciona el archivo → Delimitador: coma → Cargar.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── MANTENEDOR MATRIZ ─────────────────────────────────── -->
+    <div class="page" id="page-matriz">
+      <div class="page-header">
+        <div>
+          <h2>Mantenedor de Matriz</h2>
+          <p>Agrega, edita o elimina capacitaciones por división y área</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddCap()">+ Agregar Capacitación</button>
+      </div>
+
+      <!-- Selector División/Área para ver la matriz -->
+      <div class="card" style="margin-bottom:1.2rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end">
+          <div class="form-group">
+            <label>División</label>
+            <select id="mtz-div" onchange="onMtzDivChange()">
+              <option value="">— Todas las divisiones —</option>
+              <option>Abastecimiento</option>
+              <option>Administración</option>
+              <option>Agua Dulce</option>
+              <option>Agua Mar</option>
+              <option>Logística</option>
+              <option>Logística &amp; Cosecha</option>
+              <option>Processing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Área</label>
+            <select id="mtz-area" onchange="renderMatriz()">
+              <option value="">— Todas las áreas —</option>
+            </select>
+          </div>
+          <button class="btn btn-outline" onclick="document.getElementById('mtz-div').value='';document.getElementById('mtz-area').innerHTML='<option value=\'\'>— Todas las áreas —</option>';renderMatriz()">Limpiar</button>
+        </div>
+      </div>
+
+      <div id="matriz-container"></div>
+    </div>
+
+    <!-- Modal agregar/editar capacitación en la matriz -->
+    <div class="overlay" id="addCapOverlay">
+      <div class="modal" style="max-width:520px;text-align:left">
+        <button class="modal-close" onclick="closeModal('addCapOverlay')">✕</button>
+        <h3 id="addcap-title">Agregar Capacitación</h3>
+        <p class="modal-sub" id="addcap-sub">Completa los campos para agregar una nueva capacitación a la matriz</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem">
+          <div class="form-group">
+            <label>División <span style="color:var(--salmon)">*</span></label>
+            <select id="ac-div" onchange="onAcDivChange()">
+              <option value="">— Selecciona —</option>
+              <option>Abastecimiento</option>
+              <option>Administración</option>
+              <option>Agua Dulce</option>
+              <option>Agua Mar</option>
+              <option>Logística</option>
+              <option>Logística &amp; Cosecha</option>
+              <option>Processing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Área <span style="color:var(--salmon)">*</span></label>
+            <select id="ac-area" disabled>
+              <option value="">— Selecciona una división primero —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Nombre de la Capacitación <span style="color:var(--salmon)">*</span></label>
+            <input type="text" id="ac-nombre" placeholder="Nombre de la capacitación" />
+          </div>
+          <input type="hidden" id="ac-edit-index" value="" />
+        </div>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+          <button class="btn btn-outline btn-sm" onclick="closeModal('addCapOverlay')">Cancelar</button>
+          <button class="btn btn-primary btn-sm" onclick="saveCapInMatriz()">Guardar</button>
         </div>
       </div>
     </div>
@@ -1096,7 +1180,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 const PAGE_TITLES = {
   dashboard: 'Dashboard', nueva: 'Nueva Capacitación',
-  lista: 'Capacitaciones', exportar: 'Exportar Datos'
+  lista: 'Capacitaciones', exportar: 'Exportar Datos', matriz: 'Mantenedor Matriz'
 };
 
 function showPage(name){
@@ -1551,6 +1635,172 @@ async function exportCSV(type){
 }
 function q(s){return '"'+String(s||'').replace(/"/g,'""')+'"';}
 function dl(csv,name){const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();}
+
+// ── MANTENEDOR MATRIZ ────────────────────────────────────────────
+// Trabajamos sobre una copia mutable de la MATRIZ en localStorage-style (en memoria)
+let MATRIZ_LOCAL = JSON.parse(JSON.stringify(MATRIZ));
+
+function onMtzDivChange(){
+  const div = document.getElementById('mtz-div').value;
+  const sel = document.getElementById('mtz-area');
+  sel.innerHTML = '<option value="">— Todas las áreas —</option>';
+  if(div && MATRIZ_LOCAL[div]){
+    const areas = MATRIZ_LOCAL[div]['_areas'] || [];
+    areas.forEach(a => {
+      const o = document.createElement('option');
+      o.value = o.textContent = a;
+      sel.appendChild(o);
+    });
+  }
+  renderMatriz();
+}
+
+function renderMatriz(){
+  const filterDiv  = document.getElementById('mtz-div').value;
+  const filterArea = document.getElementById('mtz-area').value;
+  const container  = document.getElementById('matriz-container');
+  if(!container) return;
+
+  let html = '';
+  const divs = filterDiv ? [filterDiv] : Object.keys(MATRIZ_LOCAL);
+
+  divs.forEach(div => {
+    const divData = MATRIZ_LOCAL[div];
+    if(!divData) return;
+    const areas = filterArea
+      ? (divData['_areas']||[]).filter(a => a === filterArea)
+      : (divData['_areas']||[]);
+
+    if(!areas.length) return;
+
+    html += `<div style="margin-bottom:1.5rem">
+      <div class="section-label" style="font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:700;color:var(--navy);padding-bottom:0.5rem;border-bottom:2px solid var(--navy);margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+        <span>📁 ${div}</span>
+        <button class="btn btn-outline btn-sm" style="font-size:0.72rem" onclick="openAddCapFor('${div}','')">+ Área nueva</button>
+      </div>`;
+
+    areas.forEach(area => {
+      const caps = divData[area] || [];
+      html += `<div class="card" style="margin-bottom:0.8rem;padding:1.2rem 1.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.9rem">
+          <div>
+            <span style="font-size:0.68rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--salmon)">Área</span>
+            <div style="font-size:0.95rem;font-weight:600;color:var(--fg)">${area}</div>
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <span style="font-size:0.72rem;color:var(--muted)">${caps.length} capacitación(es)</span>
+            <button class="btn btn-salmon btn-sm" style="font-size:0.72rem" onclick="openAddCapFor('${div}','${area}')">+ Agregar</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:0.35rem">
+          ${caps.map((c,i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.8rem;background:var(--bg);border-radius:6px;border:1px solid var(--border);font-size:0.84rem">
+              <span style="flex:1;padding-right:1rem;color:var(--fg)">${c}</span>
+              <div style="display:flex;gap:0.4rem;flex-shrink:0">
+                <button class="btn btn-outline btn-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem" onclick="editCapInMatriz('${escQ(div)}','${escQ(area)}',${i})">✏️</button>
+                <button class="btn btn-danger-outline btn-sm" style="font-size:0.7rem;padding:0.3rem 0.7rem" onclick="deleteCapFromMatriz('${escQ(div)}','${escQ(area)}',${i})">🗑️</button>
+              </div>
+            </div>`).join('')}
+          ${caps.length===0 ? '<div style="font-size:0.82rem;color:var(--muted-light);padding:0.5rem">Sin capacitaciones registradas.</div>' : ''}
+        </div>
+      </div>`;
+    });
+
+    html += '</div>';
+  });
+
+  if(!html) html = '<div class="empty"><div class="big">🗂️</div><p>No hay resultados para los filtros seleccionados.</p></div>';
+  container.innerHTML = html;
+}
+
+function escQ(s){ return (s||'').replace(/'/g,"\'"); }
+
+function openAddCap(){
+  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
+  document.getElementById('ac-div').value = '';
+  document.getElementById('ac-area').innerHTML = '<option value="">— Selecciona una división primero —</option>';
+  document.getElementById('ac-area').disabled = true;
+  document.getElementById('ac-nombre').value = '';
+  document.getElementById('ac-edit-index').value = '';
+  document.getElementById('addCapOverlay').classList.add('open');
+}
+
+function openAddCapFor(div, area){
+  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
+  document.getElementById('ac-div').value = div;
+  onAcDivChange();
+  if(area) document.getElementById('ac-area').value = area;
+  document.getElementById('ac-nombre').value = '';
+  document.getElementById('ac-edit-index').value = '';
+  document.getElementById('addCapOverlay').classList.add('open');
+}
+
+function editCapInMatriz(div, area, idx){
+  const cap = (MATRIZ_LOCAL[div]||{})[area]?.[idx];
+  if(cap === undefined) return;
+  document.getElementById('addcap-title').textContent = 'Editar Capacitación';
+  document.getElementById('ac-div').value = div;
+  onAcDivChange();
+  document.getElementById('ac-area').value = area;
+  document.getElementById('ac-nombre').value = cap;
+  document.getElementById('ac-edit-index').value = idx;
+  document.getElementById('addCapOverlay').classList.add('open');
+}
+
+function onAcDivChange(){
+  const div = document.getElementById('ac-div').value;
+  const sel = document.getElementById('ac-area');
+  sel.innerHTML = '<option value="">— Selecciona un área —</option>';
+  sel.disabled = true;
+  if(div && MATRIZ_LOCAL[div]){
+    const areas = MATRIZ_LOCAL[div]['_areas'] || [];
+    areas.forEach(a => {
+      const o = document.createElement('option');
+      o.value = o.textContent = a;
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  }
+}
+
+function saveCapInMatriz(){
+  const div    = document.getElementById('ac-div').value.trim();
+  const area   = document.getElementById('ac-area').value.trim();
+  const nombre = document.getElementById('ac-nombre').value.trim();
+  const editIdx= document.getElementById('ac-edit-index').value;
+
+  if(!div || !area || !nombre){
+    toast('Completa todos los campos','err'); return;
+  }
+
+  if(!MATRIZ_LOCAL[div]) return;
+  if(!MATRIZ_LOCAL[div][area]) MATRIZ_LOCAL[div][area] = [];
+
+  if(editIdx !== ''){
+    MATRIZ_LOCAL[div][area][parseInt(editIdx)] = nombre;
+    toast('✅ Capacitación actualizada');
+  } else {
+    MATRIZ_LOCAL[div][area].push(nombre);
+    toast('✅ Capacitación agregada');
+  }
+
+  // Sync to the live MATRIZ used by the form
+  Object.assign(MATRIZ, MATRIZ_LOCAL);
+
+  closeModal('addCapOverlay');
+  // Refresh the filter dropdowns in case this area is now selected
+  onMtzDivChange();
+  renderMatriz();
+}
+
+function deleteCapFromMatriz(div, area, idx){
+  const cap = (MATRIZ_LOCAL[div]||{})[area]?.[idx];
+  if(!confirm("¿Eliminar \""+cap+"\"?")) return;
+  MATRIZ_LOCAL[div][area].splice(idx, 1);
+  Object.assign(MATRIZ, MATRIZ_LOCAL);
+  toast('Capacitación eliminada');
+  renderMatriz();
+}
 </script>
 </body>
 </html>
