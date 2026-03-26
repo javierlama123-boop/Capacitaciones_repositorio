@@ -9,8 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
@@ -33,13 +32,6 @@ window._doc        = doc;
 window._onSnapshot = onSnapshot;
 window._query      = query;
 window._orderBy    = orderBy;
-window._setDoc        = setDoc;
-window._storage        = getStorage(app);
-window._ref            = ref;
-window._uploadBytesResumable = uploadBytesResumable;
-window._getDownloadURL = getDownloadURL;
-window._listAll        = listAll;
-window._deleteObject   = deleteObject;
 window._fbReady    = true;
 document.dispatchEvent(new Event('fb-ready'));
 </script>
@@ -74,25 +66,24 @@ aside{
 }
 
 .logo-area{
-  padding:1.2rem 1.4rem 1rem;
+  padding:1.6rem 1.4rem 1.4rem;
   border-bottom:1px solid rgba(255,255,255,0.1);
-  display:flex;align-items:center;justify-content:flex-start;
+  display:flex;align-items:center;gap:0.9rem;
 }
 
-/* Logos Multi-X y Forja en fila */
-.logos-sidebar{
-  display:flex;flex-direction:row;align-items:center;
-  gap:0.75rem;width:100%;
+/* SVG logo Multi-X inline */
+.logo-svg{flex-shrink:0;width:48px;height:48px}
+
+.logo-text{line-height:1.2}
+.logo-text .brand{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.3rem;font-weight:700;
+  color:#ffffff;letter-spacing:0.04em;text-transform:uppercase;
 }
-.logo-multix{
-  height:22px;width:auto;flex-shrink:0;
-}
-.logo-divider{
-  width:1px;height:22px;
-  background:rgba(255,255,255,0.2);flex-shrink:0;
-}
-.logo-forja{
-  height:16px;width:auto;flex-shrink:0;
+.logo-text .sub{
+  font-size:0.68rem;font-weight:400;
+  color:rgba(255,255,255,0.45);
+  text-transform:uppercase;letter-spacing:0.08em;
 }
 
 nav{flex:1;padding:1rem 0;overflow-y:auto}
@@ -418,133 +409,23 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 .chart-sub{font-size:0.72rem;color:var(--muted);margin-bottom:1rem}
 .chart-wrap{position:relative;height:220px}
 
-/* ── MANTENEDOR ──────────────────────────────────────────────── */
-.area-btn{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0.6rem 0.8rem;border-radius:7px;cursor:pointer;
-  font-size:0.84rem;font-weight:500;color:var(--fg);
-  border:1.5px solid transparent;transition:all 0.15s;
-  background:var(--bg);
-}
-.area-btn:hover{border-color:var(--border-strong);background:#fff}
-.area-btn.active{
-  background:rgba(0,43,79,0.07);border-color:var(--navy);
-  color:var(--navy);font-weight:700;
-}
-.area-btn .area-del{
-  opacity:0;font-size:0.75rem;color:var(--danger);
-  background:none;border:none;cursor:pointer;padding:0 0.2rem;
-  transition:opacity 0.15s;
-}
-.area-btn:hover .area-del{opacity:1}
-
-.cap-item{
-  display:flex;align-items:center;gap:0.7rem;
-  padding:0.65rem 0.9rem;border-radius:8px;
-  border:1px solid var(--border);background:var(--bg);
-  margin-bottom:0.45rem;
-}
-.cap-item .cap-name{flex:1;font-size:0.85rem;color:var(--fg)}
-.cap-item input{
-  flex:1;font-size:0.85rem;padding:0.3rem 0.6rem;
-  border:1.5px solid var(--navy);border-radius:5px;
-  background:#fff;color:var(--fg);outline:none;
-}
-.cap-item-actions{display:flex;gap:0.35rem;flex-shrink:0}
-.btn-icon{
-  background:none;border:1px solid var(--border);border-radius:5px;
-  padding:0.28rem 0.55rem;cursor:pointer;font-size:0.78rem;
-  color:var(--muted);transition:all 0.15s;font-family:'Barlow',sans-serif;
-}
-.btn-icon:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
-.btn-icon.del:hover{background:var(--danger);border-color:var(--danger)}
-.btn-icon.save{color:var(--success);border-color:var(--success)}
-.btn-icon.save:hover{background:var(--success);color:#fff}
-
 @media(max-width:700px){aside{display:none}main{margin-left:0}}
-/* ── FILE UPLOAD MODAL ───────────────────────────────────────── */
-.files-modal{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:2rem;max-width:600px;width:92%;
-  position:relative;max-height:85vh;overflow-y:auto;
-  box-shadow:0 24px 80px rgba(0,0,0,0.2);
-}
-.files-modal h3{
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:1.4rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem;
-}
-.files-modal .cap-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.4rem}
-
-.upload-zone{
-  border:2px dashed var(--border);border-radius:10px;
-  padding:1.8rem;text-align:center;cursor:pointer;
-  transition:border-color 0.2s,background 0.2s;
-  margin-bottom:1.2rem;
-}
-.upload-zone:hover,.upload-zone.drag{
-  border-color:var(--navy);background:rgba(0,43,79,0.03);
-}
-.upload-zone .up-icon{font-size:2rem;margin-bottom:0.5rem}
-.upload-zone p{font-size:0.83rem;color:var(--muted);margin-bottom:0.3rem}
-.upload-zone span{font-size:0.72rem;color:var(--muted-light)}
-.upload-zone input[type=file]{display:none}
-
-.progress-bar-wrap{
-  background:var(--bg);border-radius:20px;height:8px;
-  margin-bottom:0.5rem;overflow:hidden;display:none;
-}
-.progress-bar-fill{
-  height:100%;background:var(--navy);border-radius:20px;
-  transition:width 0.3s;width:0%;
-}
-.progress-text{font-size:0.75rem;color:var(--muted);margin-bottom:1rem;display:none}
-
-.file-list{display:flex;flex-direction:column;gap:0.5rem}
-.file-item{
-  display:flex;align-items:center;gap:0.8rem;
-  padding:0.7rem 0.9rem;
-  background:var(--bg);border-radius:8px;
-  border:1px solid var(--border);
-}
-.file-icon{font-size:1.3rem;flex-shrink:0}
-.file-info{flex:1;min-width:0}
-.file-info .fname{
-  font-size:0.84rem;font-weight:600;color:var(--fg);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.file-info .fmeta{font-size:0.71rem;color:var(--muted);margin-top:0.1rem}
-.file-actions{display:flex;gap:0.4rem;flex-shrink:0}
-.file-actions a,.file-actions button{
-  font-size:0.75rem;padding:0.3rem 0.7rem;border-radius:5px;
-  border:1px solid var(--border);background:var(--card);
-  color:var(--navy);cursor:pointer;text-decoration:none;
-  transition:all 0.15s;font-family:'Barlow',sans-serif;font-weight:600;
-}
-.file-actions a:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
-.file-actions button:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
-.files-empty{text-align:center;padding:1.5rem;color:var(--muted);font-size:0.84rem}
-
-/* ── FILE BADGE in card ──────────────────────────────────────── */
-.tag-files{
-  background:rgba(0,43,79,0.07);color:var(--navy);
-  border-color:rgba(0,43,79,0.15);cursor:pointer;
-}
-.tag-files:hover{background:var(--navy);color:#fff}
-
 </style>
 </head>
 <body>
 
 <aside>
   <div class="logo-area">
-    <div class="logos-sidebar">
-      <svg class="logo-multix" viewBox="0 0 90 22" xmlns="http://www.w3.org/2000/svg">
-        <text x="0" y="17" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="18" fill="white" letter-spacing="0.5">MULTI-X</text>
-      </svg>
-      <div class="logo-divider"></div>
-      <svg class="logo-forja" viewBox="0 0 55 16" xmlns="http://www.w3.org/2000/svg">
-        <text x="0" y="13" font-family="Barlow Condensed, sans-serif" font-weight="600" font-size="13" fill="rgba(255,255,255,0.55)" letter-spacing="2">FORJA</text>
-      </svg>
+    <!-- Multi-X Logo SVG -->
+    <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="48" height="48" rx="8" fill="#E8523A"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+        font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="20"
+        fill="white" letter-spacing="1">MX</text>
+    </svg>
+    <div class="logo-text">
+      <div class="brand">Multi-X</div>
+      <div class="sub">Capacitaciones</div>
     </div>
   </div>
 
@@ -560,9 +441,6 @@ select:disabled{opacity:0.5;cursor:not-allowed}
     <div class="nav-section">Gestión</div>
     <div class="nav-item" onclick="showPage('lista')" id="nav-lista">
       <span class="nav-icon">📋</span> Capacitaciones
-    </div>
-    <div class="nav-item" onclick="showPage('mantenedor')" id="nav-mantenedor">
-      <span class="nav-icon">⚙️</span> Mantenedor Matriz
     </div>
     <div class="nav-item" onclick="showPage('exportar')" id="nav-exportar">
       <span class="nav-icon">📥</span> Exportar Datos
@@ -599,20 +477,16 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <!-- FILTROS -->
       <div class="filter-bar">
         <div class="filter-group">
-          <label>Area</label>
+          <label>Division</label>
           <select id="fil-area" onchange="applyFilters()">
-            <option value="">Todas las areas</option>
-            <option>Administracion y servicios</option>
+            <option value="">Todas las divisiones</option>
+            <option>Abastecimiento</option>
+            <option>Administración</option>
             <option>Agua Dulce</option>
             <option>Agua Mar</option>
-            <option>Bodega / Abastecimiento</option>
-            <option>DIVING-X</option>
-            <option>Frigorifico</option>
-            <option>Laboratorio</option>
-            <option>Patio operaciones</option>
-            <option>Proceso Primario</option>
+            <option>Logística</option>
+            <option>Logística &amp; Cosecha</option>
             <option>Processing</option>
-            <option>Seguridad</option>
           </select>
         </div>
         <div class="filter-group">
@@ -697,27 +571,32 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <div class="card">
         <div class="form-grid">
 
-          <!-- ÁREA (selecciona primero) -->
+          <!-- DIVISIÓN (selecciona primero) -->
           <div class="form-group">
-            <label>Área *</label>
+            <label>División *</label>
             <select id="f-area" onchange="onAreaChange()">
-              <option value="">— Selecciona un área —</option>
-              <option>Administración y servicios</option>
+              <option value="">— Selecciona una división —</option>
+              <option>Abastecimiento</option>
+              <option>Administración</option>
               <option>Agua Dulce</option>
               <option>Agua Mar</option>
-              <option>Bodega / Abastecimiento</option>
-              <option>DIVING-X</option>
-              <option>Frigorífico</option>
-              <option>Laboratorio</option>
-              <option>Patio operaciones</option>
-              <option>Proceso Primario</option>
+              <option>Logística</option>
+              <option>Logística &amp; Cosecha</option>
               <option>Processing</option>
-              <option>Seguridad</option>
             </select>
           </div>
 
-          <!-- NOMBRE (depende del área) -->
+          <!-- ÁREA (depende de la división) -->
           <div class="form-group">
+            <label>Área *</label>
+            <select id="f-subarea" disabled onchange="onSubareaChange()">
+              <option value="">— Selecciona una división primero —</option>
+            </select>
+            <div class="form-hint" id="subarea-hint">Selecciona la división para ver las áreas disponibles</div>
+          </div>
+
+          <!-- NOMBRE (depende del área) -->
+          <div class="form-group fg-full">
             <label>Nombre de la Capacitación *</label>
             <select id="f-nombre" disabled>
               <option value="">— Selecciona un área primero —</option>
@@ -735,9 +614,24 @@ select:disabled{opacity:0.5;cursor:not-allowed}
             <input type="number" id="f-duracion" min="0.5" step="0.5" placeholder="Ej: 4"/>
           </div>
 
+          <!-- PROVEEDOR -->
           <div class="form-group">
+            <label>Proveedor *</label>
+            <select id="f-proveedor" onchange="onProveedorChange()">
+              <option value="">— Selecciona un proveedor —</option>
+              <option value="MultiX">Multi-X</option>
+              <option value="ACHS">ACHS</option>
+              <option value="OTEC">OTEC</option>
+            </select>
+          </div>
+
+          <!-- RELATOR (select si MultiX, input si ACHS/OTEC) -->
+          <div class="form-group" id="relator-wrapper">
             <label>Relator / Instructor</label>
-            <input type="text" id="f-relator" placeholder="Nombre del relator (opcional)"/>
+            <select id="f-relator-select" style="display:none" onchange="syncRelatorFromSelect()">
+              <option value="">— Selecciona un relator —</option>
+            </select>
+            <input type="text" id="f-relator" placeholder="Nombre del relator"/>
           </div>
 
           <div class="form-group fg-full">
@@ -761,42 +655,6 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         </div>
       </div>
       <div id="lista-container"><span class="loader"></span>Cargando...</div>
-    </div>
-
-    <!-- ── MANTENEDOR MATRIZ ──────────────────────────────────── -->
-    <div class="page" id="page-mantenedor">
-      <div class="page-header">
-        <div>
-          <h2>Mantenedor Matriz</h2>
-          <p>Agrega, edita o elimina capacitaciones por area</p>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:260px 1fr;gap:1.4rem;align-items:start">
-
-        <!-- Panel izquierdo: selector de area -->
-        <div>
-          <div class="card" style="padding:1.2rem">
-            <div class="section-label" style="margin-bottom:0.8rem">Selecciona un area</div>
-            <div id="mant-area-list" style="display:flex;flex-direction:column;gap:0.3rem"></div>
-          </div>
-          <div class="card" style="padding:1.2rem;margin-top:0">
-            <div class="section-label" style="margin-bottom:0.8rem">Nueva area</div>
-            <div style="display:flex;gap:0.5rem">
-              <input type="text" id="mant-new-area" placeholder="Nombre del area" style="flex:1;font-size:0.83rem;padding:0.55rem 0.8rem"/>
-              <button class="btn btn-primary btn-sm" onclick="addArea()">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel derecho: capacitaciones del area -->
-        <div class="card" id="mant-right-panel" style="min-height:400px">
-          <div style="text-align:center;padding:4rem 2rem;color:var(--muted)">
-            <div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3">⚙️</div>
-            <p style="font-size:0.86rem">Selecciona un area para ver y editar sus capacitaciones</p>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ── EXPORTAR ───────────────────────────────────────────── -->
@@ -849,238 +707,379 @@ select:disabled{opacity:0.5;cursor:not-allowed}
   </div>
 </div>
 
-
-<!-- FILES MODAL -->
-<div class="overlay" id="filesOverlay">
-  <div class="files-modal">
-    <button class="modal-close" onclick="closeModal('filesOverlay')">&#x2715;</button>
-    <h3>Archivos adjuntos</h3>
-    <p class="cap-sub" id="files-cap-name">-</p>
-
-    <!-- Upload zone -->
-    <div class="upload-zone" id="upload-zone"
-         onclick="document.getElementById('file-input').click()"
-         ondragover="event.preventDefault();this.classList.add('drag')"
-         ondragleave="this.classList.remove('drag')"
-         ondrop="handleDrop(event)">
-      <div class="up-icon">&#128228;</div>
-      <p>Haz clic o arrastra archivos aqui</p>
-      <span>Fotos (JPG, PNG) y documentos (PDF) - max 20MB por archivo</span>
-      <input type="file" id="file-input" multiple accept=".jpg,.jpeg,.png,.pdf"
-             onchange="uploadFiles(this.files)"/>
-    </div>
-
-    <div class="progress-bar-wrap" id="progress-wrap">
-      <div class="progress-bar-fill" id="progress-fill"></div>
-    </div>
-    <div class="progress-text" id="progress-text">Subiendo...</div>
-
-    <div class="section-label" style="margin-bottom:0.8rem">Archivos guardados</div>
-    <div class="file-list" id="file-list">
-      <div class="files-empty">Cargando archivos...</div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── MATRIZ DE CAPACITACIONES ────────────────────────────────────
+// ── ESTRUCTURA DIVISIÓN → ÁREA → CAPACITACIONES ─────────────────
 const MATRIZ = {
-  "Administración y servicios": [
-    "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
-    "Conducción defensiva bajo condiciones adversas",
-    "Ergonomía puestos de trabajo Administrativo",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Operación máquina Compactadora",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo Manejo Manual de Cargas",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ],
-  "Agua Dulce": [
-    "Capacitación de Trabajos en caliente, soldadura, oxicorte, esmerilado, medidas preventivas, EPP, permisos y control de riesgos.",
-    "Curso de Soldadura industrial: teoría y práctica en soldadura al arco, MIG, TIG u otros procesos",
-    "Exposición a Ruido",
-    "Extintores de Incendio",
-    "Hombre al Agua",
-    "Identificación de Peligro y Evaluación de Riesgos | Mapas de Riesgos",
-    "Manejo Manual de Carga",
-    "Manipulación y Almacenamiento Seguro de Sustancias Peligrosas (SUPSEL)",
-    "Planes de Emergencia",
-    "Primeros Auxilios",
-    "Radiación UV",
-    "Sistema de Bloqueo y Etiquetado de Energías (LOTO)",
-    "Trabajo Seguro en Altura y Uso Correcto de Arnés",
-    "Trabajo seguro en Izaje de Carga",
-    "Trastornos músculos esqueléticos"
-  ],
-  "Agua Mar": [
-    "Baño de peces",
-    "Buceo Seguro",
-    "Capacitación y procedimiento de mortalidades masivas",
-    "Capacitación de buenas Practicas de higiene y salud",
-    "Capacitación de sustancias peligrosas",
-    "Capacitación de trabajos en caliente",
-    "Capacitación ensilaje",
-    "Capacitación equipos móviles/tableros eléctricos",
-    "Capacitación faena baño de peces (Crear supervisores de baños)",
-    "Capacitación izaje de carga",
-    "Capacitación maniobra de viraje",
-    "Capacitación primera respuesta de emergencias de salud",
-    "Capacitación responsabilidad en materias de seguridad en el trabajo",
-    "Capacitación uso de EPP",
-    "Circular O-31/020",
-    "Conceptos básicos de buceo",
-    "Conceptos básicos en buceo (Jefes de centro y asistentes de centros)",
-    "Curso Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Curso de identificación de peligros y evaluación de riesgos",
-    "Curso manejo de extintores",
-    "Curso primeros Auxilios y Uso de DEA",
-    "Difusión Protocolo Riesgos Psicosocial",
-    "Evitando dolencias Musculoesqueléticas de extremidades superiores en su trabajo",
-    "Exposición a ruido",
-    "Exposición al frío",
-    "Factores psicosociales y salud mental en el trabajo",
-    "Gestión en Faenas de Buceo",
-    "Hombre al agua",
-    "Identificación de peligros y evaluación de los riesgos",
-    "Inducción en Seguridad y Salud Ocupacional – Centro de Cultivo",
-    "Inspección de Trabajos de Buceo: Supervisión y control de faena segura",
-    "Investigación de Incidentes y Causa Raíz",
-    "Izaje de cargas",
-    "Manejo a la defensiva en Condiciones Adversas",
-    "Manejo de sustancias químicas y mercancías peligrosas asociadas al baño de peces",
-    "Manejo manual de cargas",
-    "Manipulación y almacenamiento de sustancias peligrosas",
-    "Mapas de Riesgo",
-    "Peligros de la Radiación UV",
-    "Practicas Seguras en Actividades de Izaje",
-    "Primeros Auxilios",
-    "Protegiéndonos del Ruido en el Lugar de Trabajo",
-    "Radiación UV",
-    "Responsabilidad Legal en Materia de Seguridad",
-    "Sistema de Bloqueo y Etiquetado de Energías",
-    "Taller Hombre al Agua",
-    "Teoría del Fuego y Manejo de Extintores Portátiles",
-    "Trabajo en Equipo",
-    "Trabajos en caliente (trabajos de soldadura)",
-    "Técnicas De Prevención En La Higiene Y Manipulación De Alimentos",
-    "Técnicas de Izaje y Señales Rigger",
-    "Uso de sistemas de ensilaje",
-    "Uso ramal de incendio y achique"
-  ],
-  "Bodega / Abastecimiento": [
-    "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
-    "Conducción defensiva bajo condiciones adversas",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Operación Máquina Armadora de Cajas",
-    "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo Manejo Manual de Cargas",
-    "Protocolo TMERT",
-    "Protocolo de Exposición a Frío",
-    "Protocolo de Protección Radiación UV",
-    "Sistemas de Refrigeración con Amoniaco",
-    "Teoría del fuego y Manejo de Extintores Portátiles",
-    "Uso de sistema de anclaje y arnés de seguridad en trabajos en altura"
-  ],
-  "DIVING-X": [
-    "Curso Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Curso Técnicas de Izaje y Rigger",
-    "Física y Fisiología Aplicada al Buceo",
-    "Gestión y liderazgo para supervisores de buceo",
-    "Interpretación Básica De Tablas De Buceo De La Marina Norteamericana",
-    "Oxigenación Normobárica en Faenas de Buceo",
-    "Peligros de la Radiación UV",
-    "Primeros Auxilios en buceo",
-    "Responsabilidad Legal en Materia de Seguridad",
-    "Teoría del Fuego y Manejo de Extintores Portátiles",
-    "Técnicas De Prevención En La Higiene Y Manipulación De Alimentos",
-    "Uso y Mantenimiento Mascaron Kirby Morgan 28",
-    "Uso y Mantenimiento Traje Seco"
-  ],
-  "Frigorífico": [
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Operación de Máquina Enzunchadora",
-    "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
-    "Operación de transpaleta manual y eléctrica",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo Manejo Manual de Cargas",
-    "Protocolo de Exposición a Frío",
-    "Protocolo de Exposición a Ruido",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ],
-  "Laboratorio": [
-    "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Manipulación de equipos Autoclaves",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo TMERT",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ],
-  "Patio operaciones": [
-    "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
-    "Conducción defensiva bajo condiciones adversas",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Operación Máquina Compactadora",
-    "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo de Exposición a Frío",
-    "Protocolo de Protección Radiación UV",
-    "Recarga de combustible GLP a grúas horquilla",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ],
-  "Proceso Primario": [
-    "Conducción defensiva bajo condiciones adversas",
-    "Hombre al Agua",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo de Exposición a Frío",
-    "Protocolo de Protección Radiación UV",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ],
-  "Processing": [
-    "Defensa en máquinas",
-    "Manejo de sustancias químicas peligrosas",
-    "Op. Básicas para el bloqueo de energías peligrosas en máquinas y equipos",
-    "Prevención de Riesgos Eléctricos",
-    "Principios de seguridad en máquinas y equipos",
-    "Prácticas seguras en sistemas de refrigeración con amoniaco",
-    "Responsabilidad legal en materia de Seguridad y Salud en el Trabajo",
-    "Seguridad en entornos de trabajo con cintas transportadoras",
-    "Supervisión y liderazgo en prevención de riesgos",
-    "Teoría del Fuego y Manejo de Extintores Portátiles",
-    "identificación de peligros y evaluación de riesgos en el trabajo"
-  ],
-  "Seguridad": [
-    "Conducción defensiva bajo condiciones adversas",
-    "Ergonomía puestos de trabajo Administrativo",
-    "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
-    "Primeros Auxilios ante Emergencias de Salud",
-    "Protocolo de Exposición a Frío",
-    "Protocolo de Protección Radiación UV",
-    "Teoría del fuego y Manejo de Extintores Portátiles"
-  ]
+  "Agua Dulce": {
+    "_areas": ["Mantención", "Agua Dulce"],
+    "Mantención": [
+      "Capacitación de Trabajos en caliente, soldadura, oxicorte, esmerilado, medidas preventivas, EPP, permisos y control de riesgos.",
+      "Curso de Soldadura industrial: teoría y práctica en soldadura al arco, MIG, TIG u otros procesos",
+      "Exposición a Ruido"
+    ],
+    "Agua Dulce": [
+      "Manipulación y Almacenamiento Seguro de Sustancias Peligrosas (SUPSEL)",
+      "Trabajo Seguro en Altura y Uso Correcto de Arnés",
+      "Sistema de Bloqueo y Etiquetado de Energías (LOTO)",
+      "Trabajo seguro en Izaje de Carga",
+      "Extintores de Incendio",
+      "Primeros Auxilios",
+      "Planes de Emergencia",
+      "Manejo Manual de Carga",
+      "Trastornos músculos esqueléticos",
+      "Radiación UV",
+      "Identificación de Peligro y Evaluación de Riesgos | Mapas de Riesgos",
+      "Hombre al Agua"
+    ]
+  },
+  "Logística": {
+    "_areas": ["Frigorífico"],
+    "Frigorífico": [
+      "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
+      "Operación de transpaleta manual y eléctrica",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Operación de Máquina Enzunchadora",
+      "Protocolo de Exposición a Frío",
+      "Protocolo Manejo Manual de Cargas",
+      "Protocolo de Exposición a Ruido"
+    ]
+  },
+  "Abastecimiento": {
+    "_areas": ["Bodega"],
+    "Bodega": [
+      "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
+      "Sistemas de Refrigeración con Amoniaco",
+      "Uso de sistema de anclaje y arnés de seguridad en trabajos en altura",
+      "Operación Máquina Armadora de Cajas",
+      "Conducción defensiva bajo condiciones adversas",
+      "Protocolo de Exposición a Frío",
+      "Protocolo Manejo Manual de Cargas",
+      "Protocolo TMERT",
+      "Protocolo de Protección Radiación UV"
+    ]
+  },
+  "Administración": {
+    "_areas": ["Administración", "Administrativos", "Higiene", "Laboratorio", "Seguridad Corporativa", "Central de Monitoreo"],
+    "Administración": [
+      "Ergonomía puestos de trabajo Administrativo",
+      "Conducción defensiva bajo condiciones adversas",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Protocolo Manejo Manual de Cargas",
+      "Protocolo TMERT",
+      "Protocolo de Exposición a Frío",
+      "Protocolo de Protección Radiación UV"
+    ],
+    "Administrativos": [
+      "Ergonomía puestos de trabajo Administrativo",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Conducción defensiva bajo condiciones adversas"
+    ],
+    "Higiene": [
+      "Operación máquina Compactadora",
+      "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo"
+    ],
+    "Laboratorio": [
+      "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Manipulación de equipos Autoclaves",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles"
+    ],
+    "Seguridad Corporativa": [
+      "Ergonomía puestos de trabajo Administrativo",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Conducción defensiva bajo condiciones adversas",
+      "Protocolo de Exposición a Frío",
+      "Protocolo de Protección Radiación UV"
+    ],
+    "Central de Monitoreo": [
+      "Ergonomía puestos de trabajo Administrativo",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Protocolo TMERT",
+      "Protocolo de Protección Radiación UV"
+    ]
+  },
+  "Logística & Cosecha": {
+    "_areas": ["Acopio", "Patio operaciones"],
+    "Acopio": [
+      "Hombre al Agua",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Conducción defensiva bajo condiciones adversas",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Protocolo de Exposición a Frío",
+      "Protocolo de Protección Radiación UV"
+    ],
+    "Patio operaciones": [
+      "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
+      "Conducción defensiva bajo condiciones adversas",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Operación Máquina Compactadora",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Recarga de combustible GLP a grúas horquilla",
+      "Protocolo de Exposición a Frío",
+      "Protocolo de Protección Radiación UV",
+      "Teoría del fuego y Manejo de Extintores Portátiles"
+    ]
+  },
+  "Processing": {
+    "_areas": ["Planta de proceso", "Mantención / Producción", "Diving X"],
+    "Planta de proceso": [
+      "Operación de máquinas grúas horquillas y Apiladores Eléctricos",
+      "Almacenamiento y Manipulación de Sustancias Químicas Peligrosas",
+      "Primeros Auxilios ante Emergencias de Salud",
+      "Teoría del fuego y Manejo de Extintores Portátiles",
+      "Teoría del Fuego y Manejo de Extintores Portátiles",
+      "Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Identificación de peligros y evaluación de riesgos en el trabajo",
+      "Recarga de combustible GLP a grúas horquilla",
+      "Operación Máquina Compactadora",
+      "Conducción defensiva bajo condiciones adversas",
+      "Protocolo de Exposición a Frío",
+      "Protocolo de Protección Radiación UV",
+      "Principios de seguridad en máquinas y equipos",
+      "Seguridad en entornos de trabajo con cintas transportadoras",
+      "Op. Básicas para el bloqueo de energías peligrosas en máquinas y equipos",
+      "Manejo de sustancias químicas peligrosas",
+      "Prevención de Riesgos Eléctricos",
+      "Prácticas seguras en sistemas de refrigeración con amoniaco",
+      "Defensa en máquinas",
+      "Responsabilidad legal en materia de Seguridad y Salud en el Trabajo",
+      "Supervisión y liderazgo en prevención de riesgos"
+    ],
+    "Mantención / Producción": [
+      "Principios de seguridad en máquinas y equipos",
+      "Seguridad en entornos de trabajo con cintas transportadoras",
+      "Op. Básicas para el bloqueo de energías peligrosas en máquinas y equipos",
+      "Manejo de sustancias químicas peligrosas",
+      "Prevención de Riesgos Eléctricos",
+      "Prácticas seguras en sistemas de refrigeración con amoniaco",
+      "Defensa en máquinas",
+      "Identificación de peligros y evaluación de riesgos en el trabajo",
+      "Responsabilidad legal en materia de Seguridad y Salud en el Trabajo"
+    ],
+    "Diving X": [
+      "Curso Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Curso Técnicas de Izaje y Rigger",
+      "Física y Fisiología Aplicada al Buceo",
+      "Gestión y liderazgo para supervisores de buceo",
+      "Interpretación Básica De Tablas De Buceo De La Marina Norteamericana",
+      "Oxigenación Normobárica en Faenas de Buceo",
+      "Peligros de la Radiación UV",
+      "Primeros Auxilios en buceo",
+      "Responsabilidad Legal en Materia de Seguridad",
+      "Uso y Mantenimiento Mascaron Kirby Morgan 28",
+      "Uso y Mantenimiento Traje Seco"
+    ]
+  },
+  "Agua Mar": {
+    "_areas": ["Aysén", "Chiloé - Cordillera", "Melinka", "Puyuhuapi", "Taraba"],
+    "Aysén": [
+      "Primeros Auxilios",
+      "Teoría del fuego y manejo de extintores portátiles",
+      "Hombre al agua",
+      "Izaje de cargas",
+      "Manipulación y almacenamiento de sustancias peligrosas",
+      "Responsabilidad legal en materia de seguridad y salud ocupacional",
+      "Uso de sistemas de ensilaje",
+      "Trabajos en caliente (trabajos de soldadura)",
+      "Uso ramal de incendio y achique",
+      "Circular O-31/020",
+      "Sistema de Bloqueo y Etiquetado de Energías",
+      "Conceptos básicos de buceo",
+      "Exposición a ruido",
+      "Identificación de peligros y evaluación de los riesgos",
+      "Radiación UV",
+      "Exposición al frío",
+      "Factores psicosociales y salud mental en el trabajo",
+      "Baño de peces",
+      "Inducción en Seguridad y Salud Ocupacional – Centro de Cultivo"
+    ],
+    "Chiloé - Cordillera": [
+      "Primeros Auxilios",
+      "Hombre al agua",
+      "Izaje de cargas",
+      "Manipulación y almacenamiento de sustancias peligrosas",
+      "Responsabilidad legal en materia de seguridad y salud ocupacional",
+      "Uso de sistemas de ensilaje",
+      "Uso ramal de incendio y achique",
+      "Circular O-31/020",
+      "Sistema de Bloqueo y Etiquetado de Energías",
+      "Conceptos básicos de buceo",
+      "Identificación de peligros y evaluación de los riesgos",
+      "Factores psicosociales y salud mental en el trabajo",
+      "Baño de peces",
+      "Investigación de Incidentes y Causa Raíz"
+    ],
+    "Melinka": [
+      "Primeros Auxilios",
+      "OMI 1.20 PREVENCIÓN Y LUCHA CONTRA INCENDIOS",
+      "Hombre al agua",
+      "Técnicas de Izaje y Señales Rigger",
+      "Manipulación y almacenamiento de sustancias peligrosas",
+      "Manejo de sustancias químicas y mercancías peligrosas asociadas al baño de peces",
+      "Inspección de Trabajos de Buceo: Supervisión y control de faena segura",
+      "Responsabilidad legal en materia de seguridad y salud ocupacional",
+      "Uso de sistemas de ensilaje - seguridad en labores del ensilaje.",
+      "Uso ramal de incendio y achique",
+      "Circular O-31/020",
+      "Sistema de Bloqueo y Etiquetado de Energías",
+      "Manejo a la defensiva en Condiciones Adversas",
+      "Trabajo en Equipo",
+      "Gestión en Faenas de Buceo",
+      "Capacitación primera respuesta de emergencias de salud",
+      "Evitando dolencias Musculoesqueléticas de extremidades superiores en su trabajo",
+      "Manejo manual de cargas",
+      "Buceo Seguro",
+      "Protegiéndonos del Ruido en el Lugar de Trabajo"
+    ],
+    "Puyuhuapi": [
+      "Teoría del Fuego y Manejo de Extintores Portátiles",
+      "Practicas Seguras en Actividades de Izaje",
+      "Técnicas De Prevención En La Higiene Y Manipulación De Alimentos",
+      "Responsabilidad Legal en Materia de Seguridad",
+      "Peligros de la Radiación UV",
+      "Curso Identificación de Peligros y Evaluación de Riesgos en el Trabajo",
+      "Mapas de Riesgo",
+      "Difusión Protocolo Riesgos Psicosocial",
+      "Taller Hombre al Agua",
+      "Primeros Auxilios en buceo",
+      "Uso y Mantenimiento Traje Seco",
+      "Uso y Mantenimiento Mascaron Kirby Morgan 28",
+      "Interpretación Básica De Tablas De Buceo De La Marina Norteamericana",
+      "Gestión y liderazgo para supervisores de buceo",
+      "Oxigenación Normobárica en Faenas de Buceo",
+      "Física y Fisiología Aplicada al Buceo",
+      "Curso Técnicas de Izaje y Rigger",
+      "Capacitación equipos móviles/tableros eléctricos",
+      "Capacitación de trabajos en caliente",
+      "Capacitación faena baño de peces (Crear supervisores de baños)",
+      "Capacitación de sustancias peligrosas",
+      "Capacitación de buenas Practicas de higiene y salud",
+      "Capacitación izaje de carga",
+      "Capacitación maniobra de viraje",
+      "Capacitación uso de EPP",
+      "Capacitación y procedimiento de mortalidades masivas",
+      "Conceptos básicos en buceo (Jefes de centro y asistentes de centros)",
+      "Curso de identificación de peligros y evaluación de riesgos",
+      "Curso manejo de extintores",
+      "Curso primeros Auxilios y Uso de DEA",
+      "Capacitación ensilaje",
+      "Capacitación responsabilidad en materias de seguridad en el trabajo"
+    ],
+    "Taraba": [
+      "Teoría del Fuego y Manejo de Extintores Portátiles",
+      "Practicas Seguras en Actividades de Izaje",
+      "Técnicas De Prevención En La Higiene Y Manipulación De Alimentos",
+      "Responsabilidad Legal en Materia de Seguridad",
+      "Peligros de la Radiación UV",
+      "Curso Identificación de Peligros y Evaluación de Riesgos en el Trabajo"
+    ]
+  }
 };
 
-// ── MATRIZ CHANGE HANDLER ────────────────────────────────────────
-function onAreaChange() {
-  const area = document.getElementById('f-area').value;
-  const sel  = document.getElementById('f-nombre');
-  const hint = document.getElementById('nombre-hint');
+// ── RELATORES POR DIVISIÓN (Multi-X) ────────────────────────────
+const RELATORES_MULTIX = {
+  "Agua Dulce":         ["Cristian Camino"],
+  "Logística":          ["Daniela Salgado"],
+  "Abastecimiento":     ["Daniela Salgado"],
+  "Administración":     ["Daniela Salgado"],
+  "Logística & Cosecha":["Daniela Salgado"],
+  "Processing":         ["Yessie Meyer","Anselma Levicoy","Marilin Jordan","Katherine Araya"],
+  "Agua Mar":           ["Erick Pardo","Eliecer Sanhueza","Pilar Chamorro","Camilo Escobar","Marcela Marileo"]
+};
 
-  if (!area) {
+// ── HANDLERS ─────────────────────────────────────────────────────
+function onAreaChange() {
+  const division = document.getElementById('f-area').value;
+  const selSub   = document.getElementById('f-subarea');
+  const selNom   = document.getElementById('f-nombre');
+  const hintSub  = document.getElementById('subarea-hint');
+  const hintNom  = document.getElementById('nombre-hint');
+
+  selSub.innerHTML = '<option value="">— Selecciona una división primero —</option>';
+  selSub.disabled  = true;
+  selNom.innerHTML = '<option value="">— Selecciona un área primero —</option>';
+  selNom.disabled  = true;
+  hintNom.textContent = 'Selecciona el área para ver las capacitaciones disponibles';
+
+  if (!division) {
+    hintSub.textContent = 'Selecciona la división para ver las áreas disponibles';
+    onProveedorChange(); // reset relator
+    return;
+  }
+
+  const divData = MATRIZ[division];
+  if (!divData) return;
+  const areas = divData["_areas"] || [];
+  selSub.innerHTML = '<option value="">— Selecciona un área —</option>'
+    + areas.map(a => `<option value="${a}">${a}</option>`).join('');
+  selSub.disabled = false;
+  hintSub.textContent = `${areas.length} área(s) disponible(s) para ${division}`;
+  onProveedorChange();
+}
+
+function onSubareaChange() {
+  const division = document.getElementById('f-area').value;
+  const area     = document.getElementById('f-subarea').value;
+  const sel      = document.getElementById('f-nombre');
+  const hint     = document.getElementById('nombre-hint');
+
+  if (!area || !division) {
     sel.innerHTML = '<option value="">— Selecciona un área primero —</option>';
-    sel.disabled = true;
+    sel.disabled  = true;
     hint.textContent = 'Selecciona el área para ver las capacitaciones disponibles';
     return;
   }
 
-  const caps = MATRIZ[area] || [];
+  const caps = (MATRIZ[division] || {})[area] || [];
   sel.innerHTML = '<option value="">— Selecciona una capacitación —</option>'
     + caps.map(c => `<option value="${c}">${c}</option>`).join('');
   sel.disabled = false;
   hint.textContent = `${caps.length} capacitaciones disponibles para ${area}`;
+}
+
+function onProveedorChange() {
+  const proveedor  = document.getElementById('f-proveedor').value;
+  const division   = document.getElementById('f-area').value;
+  const selRelator = document.getElementById('f-relator-select');
+  const inpRelator = document.getElementById('f-relator');
+
+  if (proveedor === 'MultiX') {
+    const relatores = RELATORES_MULTIX[division] || [];
+    selRelator.innerHTML = '<option value="">— Selecciona un relator —</option>'
+      + relatores.map(r => `<option value="${r}">${r}</option>`).join('');
+    selRelator.style.display = 'block';
+    inpRelator.style.display = 'none';
+    inpRelator.value = '';
+  } else {
+    selRelator.style.display = 'none';
+    inpRelator.style.display = 'block';
+    inpRelator.value = '';
+    selRelator.value = '';
+  }
+}
+
+function syncRelatorFromSelect() {
+  const selRelator = document.getElementById('f-relator-select');
+  document.getElementById('f-relator').value = selRelator.value;
 }
 
 // ── CORE ─────────────────────────────────────────────────────────
@@ -1096,9 +1095,8 @@ function fmtDate(d){ return d ? new Date(d+'T12:00:00').toLocaleDateString('es-C
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
 const PAGE_TITLES = {
-  dashboard: 'Dashboard', nueva: 'Nueva Capacitacion',
-  lista: 'Capacitaciones', exportar: 'Exportar Datos',
-  mantenedor: 'Mantenedor Matriz'
+  dashboard: 'Dashboard', nueva: 'Nueva Capacitación',
+  lista: 'Capacitaciones', exportar: 'Exportar Datos'
 };
 
 function showPage(name){
@@ -1107,225 +1105,6 @@ function showPage(name){
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('nav-'+name).classList.add('active');
   document.getElementById('topbar-title').textContent = PAGE_TITLES[name] || name;
-  if(name === 'mantenedor') renderMantenedor();
-}
-
-// ── MANTENEDOR ────────────────────────────────────────────────
-// La matriz se guarda en Firestore: coleccion "matriz" / doc por area
-// Si no hay datos en Firestore, se usa la MATRIZ local como semilla
-
-let mantArea = null; // area actualmente seleccionada
-let mantData = {};   // copia local de la matriz editable
-
-async function loadMantData(){
-  try {
-    const snap = await window._getDocs(window._collection(window._db,'matriz'));
-    if(snap.empty){
-      // Primera vez: sembrar con la MATRIZ hardcoded
-      mantData = JSON.parse(JSON.stringify(MATRIZ));
-      await saveMantToFirestore();
-    } else {
-      mantData = {};
-      snap.docs.forEach(d => { mantData[d.id] = d.data().caps || []; });
-    }
-  } catch(e){
-    mantData = JSON.parse(JSON.stringify(MATRIZ));
-  }
-}
-
-async function saveMantToFirestore(){
-  for(const [area, caps] of Object.entries(mantData)){
-    const safeId = area.replace(/[^a-zA-Z0-9]/g,'_');
-    await window._addDoc ? null : null; // ensure imported
-    const docRef = window._doc(window._db,'matriz', safeId);
-    await window._setDoc ? window._setDoc(docRef,{area, caps}) : null;
-  }
-}
-
-function renderMantenedor(){
-  if(!Object.keys(mantData).length){
-    loadMantData().then(()=>renderAreaList());
-  } else {
-    renderAreaList();
-  }
-}
-
-function renderAreaList(){
-  const areas = Object.keys(mantData).sort();
-  const el = document.getElementById('mant-area-list');
-  el.innerHTML = areas.map(a => `
-    <div class="area-btn ${a===mantArea?'active':''}" onclick="selectMantArea('${a.replace(/'/g,"\\'")}')">
-      <span>${a}</span>
-      <button class="area-del" onclick="event.stopPropagation();deleteArea('${a.replace(/'/g,"\\'")}')">&#x2715;</button>
-    </div>`).join('');
-  if(mantArea) renderCaps();
-}
-
-function selectMantArea(area){
-  mantArea = area;
-  renderAreaList();
-  renderCaps();
-}
-
-function renderCaps(){
-  const caps = mantData[mantArea] || [];
-  const panel = document.getElementById('mant-right-panel');
-  panel.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
-      <div>
-        <div class="chart-title">${mantArea}</div>
-        <div class="chart-sub">${caps.length} capacitaciones registradas</div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="addCap()">+ Agregar capacitacion</button>
-    </div>
-    <div id="mant-caps-list">
-      ${caps.length ? caps.map((c,i) => capItemHTML(c,i)).join('') : '<div style="color:var(--muted);font-size:0.85rem;padding:1rem 0">Sin capacitaciones en esta area.</div>'}
-    </div>
-    <div id="mant-add-row" style="display:none;margin-top:0.8rem">
-      <div class="cap-item" style="border-color:var(--navy)">
-        <input type="text" id="mant-new-cap" placeholder="Nombre de la nueva capacitacion..."
-               onkeydown="if(event.key==='Enter')saveCap(-1)"/>
-        <div class="cap-item-actions">
-          <button class="btn-icon save" onclick="saveCap(-1)">Guardar</button>
-          <button class="btn-icon del" onclick="cancelAdd()">Cancelar</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function capItemHTML(cap, idx){
-  return `<div class="cap-item" id="caprow-${idx}">
-    <span class="cap-name" id="capname-${idx}">${cap}</span>
-    <div class="cap-item-actions">
-      <button class="btn-icon" onclick="editCap(${idx})">Editar</button>
-      <button class="btn-icon del" onclick="deleteCap(${idx})">Eliminar</button>
-    </div>
-  </div>`;
-}
-
-function editCap(idx){
-  const cap = mantData[mantArea][idx];
-  const row = document.getElementById('caprow-'+idx);
-  row.innerHTML = `
-    <input type="text" id="edit-cap-${idx}" value="${cap.replace(/"/g,'&quot;')}"
-           onkeydown="if(event.key==='Enter')saveEditCap(${idx})"/>
-    <div class="cap-item-actions">
-      <button class="btn-icon save" onclick="saveEditCap(${idx})">Guardar</button>
-      <button class="btn-icon del" onclick="cancelEdit(${idx},'${cap.replace(/'/g,"\\'")}')">Cancelar</button>
-    </div>`;
-  document.getElementById('edit-cap-'+idx).focus();
-}
-
-function cancelEdit(idx, original){
-  const row = document.getElementById('caprow-'+idx);
-  row.innerHTML = `
-    <span class="cap-name" id="capname-${idx}">${original}</span>
-    <div class="cap-item-actions">
-      <button class="btn-icon" onclick="editCap(${idx})">Editar</button>
-      <button class="btn-icon del" onclick="deleteCap(${idx})">Eliminar</button>
-    </div>`;
-}
-
-async function saveEditCap(idx){
-  const val = document.getElementById('edit-cap-'+idx).value.trim();
-  if(!val){ toast('El nombre no puede estar vacio','err'); return; }
-  mantData[mantArea][idx] = val;
-  await persistMatriz();
-  renderCaps();
-  syncMatrizToSelects();
-  toast('Capacitacion actualizada');
-}
-
-async function deleteCap(idx){
-  if(!confirm('Eliminar esta capacitacion de la matriz?')) return;
-  mantData[mantArea].splice(idx,1);
-  await persistMatriz();
-  renderCaps();
-  syncMatrizToSelects();
-  toast('Capacitacion eliminada');
-}
-
-function addCap(){
-  document.getElementById('mant-add-row').style.display='block';
-  document.getElementById('mant-new-cap').focus();
-}
-
-function cancelAdd(){
-  document.getElementById('mant-add-row').style.display='none';
-  document.getElementById('mant-new-cap').value='';
-}
-
-async function saveCap(idx){
-  const val = document.getElementById('mant-new-cap').value.trim();
-  if(!val){ toast('Ingresa un nombre','err'); return; }
-  if(!mantData[mantArea]) mantData[mantArea]=[];
-  mantData[mantArea].push(val);
-  mantData[mantArea].sort();
-  await persistMatriz();
-  cancelAdd();
-  renderCaps();
-  syncMatrizToSelects();
-  toast('Capacitacion agregada');
-}
-
-async function addArea(){
-  const val = document.getElementById('mant-new-area').value.trim();
-  if(!val){ toast('Ingresa el nombre del area','err'); return; }
-  if(mantData[val]){ toast('El area ya existe','err'); return; }
-  mantData[val]=[];
-  await persistMatriz();
-  document.getElementById('mant-new-area').value='';
-  selectMantArea(val);
-  toast('Area creada');
-}
-
-async function deleteArea(area){
-  if(!confirm('Eliminar el area "'+area+'" y todas sus capacitaciones?')) return;
-  delete mantData[area];
-  if(mantArea===area) mantArea=null;
-  await persistMatriz();
-  renderAreaList();
-  if(!mantArea) document.getElementById('mant-right-panel').innerHTML=
-    '<div style="text-align:center;padding:4rem 2rem;color:var(--muted)"><div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.3">⚙️</div><p style="font-size:0.86rem">Selecciona un area para ver y editar sus capacitaciones</p></div>';
-  syncMatrizToSelects();
-  toast('Area eliminada');
-}
-
-async function persistMatriz(){
-  // Guardar en Firestore coleccion "matriz"
-  try {
-    for(const [area, caps] of Object.entries(mantData)){
-      const safeId = area.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
-      await window._setDoc(
-        window._doc(window._db,'matriz',safeId),
-        { area, caps },
-        { merge: false }
-      );
-    }
-    // Actualizar MATRIZ en memoria para que el formulario use los datos frescos
-    Object.assign(MATRIZ, mantData);
-  } catch(e){
-    // Si setDoc no esta disponible, actualizar solo en memoria
-    Object.assign(MATRIZ, mantData);
-    toast('Guardado en memoria (actualiza la pagina para persistir)','err');
-  }
-}
-
-function syncMatrizToSelects(){
-  // Actualizar los selects de area en Nueva Capacitacion y filtros
-  Object.assign(MATRIZ, mantData);
-  const areaSelects = ['f-area','fil-area'];
-  areaSelects.forEach(id => {
-    const sel = document.getElementById(id);
-    if(!sel) return;
-    const current = sel.value;
-    const firstOpt = id==='f-area' ? '<option value="">- Selecciona un area -</option>'
-                                   : '<option value="">Todas las areas</option>';
-    sel.innerHTML = firstOpt + Object.keys(mantData).sort()
-      .map(a=>`<option${a===current?' selected':''}>${a}</option>`).join('');
-  });
-  // Re-trigger area change if f-area has a value
-  if(document.getElementById('f-area')?.value) onAreaChange();
 }
 
 document.addEventListener('fb-ready', () => {
@@ -1341,8 +1120,6 @@ document.addEventListener('fb-ready', () => {
     filteredTrainings = [...trainings];
     applyFilters();
     renderLista();
-    // Cargar matriz editable en background
-    loadMantData();
   }, err => {
     document.getElementById('conn-text').textContent = 'Sin conexión';
     toast('Error de conexión: '+err.message,'err');
@@ -1371,9 +1148,9 @@ function applyFilters(){
   const hasta   = document.getElementById('fil-hasta').value;
 
   filteredTrainings = trainings.filter(t => {
-    if(area   && !(t.area||'').toLowerCase().includes(area))     return false;
-    if(nombre && !(t.nombre||'').toLowerCase().includes(nombre)) return false;
-    if(relator&& !(t.relator||'').toLowerCase().includes(relator))return false;
+    if(area   && !(t.division||'').toLowerCase().includes(area))   return false;
+    if(nombre && !(t.nombre||'').toLowerCase().includes(nombre))   return false;
+    if(relator&& !(t.relator||'').toLowerCase().includes(relator)) return false;
     if(desde  && t.fecha < desde) return false;
     if(hasta  && t.fecha > hasta) return false;
     return true;
@@ -1600,14 +1377,16 @@ function renderCharts(data){
 
 async function registrar(){
   if(!window._fbReady){ toast('Firebase no listo','err'); return; }
-  const area     = document.getElementById('f-area').value.trim();
+  const division = document.getElementById('f-area').value.trim();
+  const area     = document.getElementById('f-subarea').value.trim();
   const nombre   = document.getElementById('f-nombre').value.trim();
   const fecha    = document.getElementById('f-fecha').value;
   const duracion = document.getElementById('f-duracion').value;
+  const proveedor= document.getElementById('f-proveedor').value.trim();
   const relator  = document.getElementById('f-relator').value.trim();
   const desc     = document.getElementById('f-desc').value.trim();
 
-  if(!area||!nombre||!fecha||!duracion){
+  if(!division||!area||!nombre||!fecha||!duracion){
     toast('Completa los campos obligatorios (*)','err'); return;
   }
 
@@ -1616,18 +1395,24 @@ async function registrar(){
 
   try {
     const ref = await window._addDoc(window._collection(window._db,'capacitaciones'),{
-      area, nombre, fecha,
+      division, area, nombre, fecha,
       duracion: parseFloat(duracion),
-      relator, desc,
+      proveedor, relator, desc,
       totalAsistentes: 0,
       creadoEn: new Date().toISOString()
     });
 
     // Reset form
     document.getElementById('f-area').value = '';
+    document.getElementById('f-subarea').innerHTML = '<option value="">— Selecciona una división primero —</option>';
+    document.getElementById('f-subarea').disabled = true;
     document.getElementById('f-nombre').innerHTML = '<option value="">— Selecciona un área primero —</option>';
     document.getElementById('f-nombre').disabled = true;
     document.getElementById('nombre-hint').textContent = 'Selecciona el área para ver las capacitaciones disponibles';
+    document.getElementById('subarea-hint').textContent = 'Selecciona la división para ver las áreas disponibles';
+    document.getElementById('f-proveedor').value = '';
+    document.getElementById('f-relator-select').style.display = 'none';
+    document.getElementById('f-relator').style.display = 'block';
     ['f-fecha','f-duracion','f-relator','f-desc'].forEach(i=>document.getElementById(i).value='');
 
     toast('✅ Capacitación registrada en Firebase');
@@ -1646,11 +1431,13 @@ function renderLista(){
   c.innerHTML = trainings.map(t=>`
     <div class="t-card">
       <div>
-        ${t.area ? `<span class="t-area-badge">${t.area}</span>` : ''}
+        ${t.division ? `<span class="t-area-badge">${t.division}</span>` : ''}
+        ${t.area ? `<span class="t-area-badge" style="background:rgba(232,82,58,0.1);color:var(--salmon)">${t.area}</span>` : ''}
         <div class="t-name">${t.nombre}</div>
         <div class="t-meta">
           <span class="tag">📅 ${fmtDate(t.fecha)}</span>
           <span class="tag">⏱ ${t.duracion}h</span>
+          ${t.proveedor?`<span class="tag" style="background:rgba(0,43,79,0.07);color:var(--navy)">🏢 ${t.proveedor}</span>`:''}
           ${t.relator?`<span class="tag">👤 ${t.relator}</span>`:''}
           <span class="tag tag-att">👥 ${t.totalAsistentes||0} asistentes</span>
         </div>
@@ -1659,7 +1446,6 @@ function renderLista(){
         <button class="btn btn-outline btn-sm" onclick="showQR('${t.id}')">Ver QR</button>
         <button class="btn btn-outline btn-sm" onclick="showAttendees('${t.id}')">Asistentes</button>
         <button class="btn btn-danger-outline btn-sm" onclick="eliminar('${t.id}','${t.nombre.replace(/'/g,"\\'")}')">Eliminar</button>
-        <button class=\"btn btn-outline btn-sm tag-files\" onclick=\"showFiles(\'${t.id}\',\'${t.nombre}\')\">&#128206; Archivos</button>
       </div>
     </div>`).join('');
 }
@@ -1680,8 +1466,9 @@ function showQR(id){
   const url  = base + 'asistencia.html?id='+id;
   document.getElementById('qr-subtitle').textContent = t.nombre;
   document.getElementById('qr-hint').innerHTML =
-    `${t.area ? `<strong style="color:var(--navy)">${t.area}</strong><br/>` : ''}
+    `${t.division ? `<strong style="color:var(--navy)">${t.division}</strong>${t.area?' · '+t.area:''}<br/>` : ''}
      📅 ${fmtDate(t.fecha)} · ⏱ ${t.duracion}h<br/>
+     ${t.proveedor?`🏢 ${t.proveedor}${t.relator?' · ':''}`:''}${t.relator?`👤 ${t.relator}<br/>`:''}
      <span style="font-size:0.7rem;display:block;margin-top:0.3rem">Los asistentes escanean este QR con su celular para registrar asistencia.</span>`;
   document.getElementById('qrcode').innerHTML='';
   new QRCode(document.getElementById('qrcode'),{
@@ -1748,8 +1535,8 @@ async function exportCSV(type){
   toast('Preparando exportación...');
   try {
     if(type==='cap'){
-      const csv = 'ID,Área,Nombre del Curso,Fecha,Duración (hrs),Relator,Descripción,N° Asistentes\n'
-        +trainings.map(t=>[t.id,q(t.area||''),q(t.nombre),t.fecha,t.duracion,q(t.relator||''),q(t.desc||''),(t.totalAsistentes||0)].join(',')).join('\n');
+      const csv = 'ID,División,Área,Nombre del Curso,Fecha,Duración (hrs),Proveedor,Relator,Descripción,N° Asistentes\n'
+        +trainings.map(t=>[t.id,q(t.division||''),q(t.area||''),q(t.nombre),t.fecha,t.duracion,q(t.proveedor||''),q(t.relator||''),q(t.desc||''),(t.totalAsistentes||0)].join(',')).join('\n');
       dl(csv,'capacitaciones.csv');
     } else {
       let rows=['ID Capacitación,Área,Nombre del Curso,Nombre Completo,RUT,Área Participante,Hora de Registro'];
@@ -1764,119 +1551,6 @@ async function exportCSV(type){
 }
 function q(s){return '"'+String(s||'').replace(/"/g,'""')+'"';}
 function dl(csv,name){const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();}
-
-// ── FILE MANAGEMENT ───────────────────────────────────────────
-let currentFilesCapId = null;
-
-function showFiles(capId, capNombre){
-  currentFilesCapId = capId;
-  document.getElementById('files-cap-name').textContent = capNombre || capId;
-  document.getElementById('file-list').innerHTML = '<div class="files-empty">Cargando...</div>';
-  document.getElementById('filesOverlay').classList.add('open');
-  loadFiles(capId);
-}
-
-async function loadFiles(capId){
-  const listEl = document.getElementById('file-list');
-  try {
-    const storageRef = window._ref(window._storage, 'capacitaciones/' + capId);
-    const result = await window._listAll(storageRef);
-    if(!result.items.length){
-      listEl.innerHTML = '<div class="files-empty">Sin archivos adjuntos. Sube fotos o PDFs usando el area de arriba.</div>';
-      return;
-    }
-    const items = await Promise.all(result.items.map(async item => {
-      const url = await window._getDownloadURL(item);
-      const name = item.name;
-      const ext = name.split('.').pop().toLowerCase();
-      const isPdf = ext === 'pdf';
-      const icon = isPdf ? '&#128196;' : '&#128247;';
-      const size = '';
-      return {name, url, isPdf, icon, ref: item};
-    }));
-    listEl.innerHTML = items.map((f,i) => `
-      <div class="file-item" id="fitem-${i}">
-        <div class="file-icon">${f.icon}</div>
-        <div class="file-info">
-          <div class="fname">${f.name}</div>
-          <div class="fmeta">${f.isPdf ? 'Documento PDF' : 'Imagen'}</div>
-        </div>
-        <div class="file-actions">
-          <a href="${f.url}" target="_blank" rel="noopener">Ver</a>
-          <a href="${f.url}" download="${f.name}">Descargar</a>
-          <button onclick="deleteFile('${f.ref.fullPath}', ${i})">Eliminar</button>
-        </div>
-      </div>`).join('');
-  } catch(e){
-    listEl.innerHTML = '<div class="files-empty" style="color:var(--danger)">Error al cargar archivos: ' + e.message + '</div>';
-  }
-}
-
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('upload-zone').classList.remove('drag');
-  uploadFiles(e.dataTransfer.files);
-}
-
-async function uploadFiles(files){
-  if(!files || !files.length) return;
-  if(!currentFilesCapId){ toast('Selecciona una capacitacion primero','err'); return; }
-
-  const progressWrap = document.getElementById('progress-wrap');
-  const progressFill = document.getElementById('progress-fill');
-  const progressText = document.getElementById('progress-text');
-
-  progressWrap.style.display = 'block';
-  progressText.style.display = 'block';
-
-  let uploaded = 0;
-  for(const file of Array.from(files)){
-    if(file.size > 20 * 1024 * 1024){
-      toast('Archivo ' + file.name + ' supera 20MB','err');
-      continue;
-    }
-    const allowed = ['image/jpeg','image/png','image/jpg','application/pdf'];
-    if(!allowed.includes(file.type)){
-      toast('Formato no permitido: ' + file.name,'err');
-      continue;
-    }
-
-    const safeName = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-    const storageRef = window._ref(window._storage, 'capacitaciones/' + currentFilesCapId + '/' + safeName);
-
-    await new Promise((resolve, reject) => {
-      const task = window._uploadBytesResumable(storageRef, file);
-      task.on('state_changed',
-        snap => {
-          const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-          progressFill.style.width = pct + '%';
-          progressText.textContent = 'Subiendo ' + file.name + '... ' + pct + '%';
-        },
-        err => { toast('Error subiendo ' + file.name + ': ' + err.message,'err'); reject(err); },
-        () => { uploaded++; resolve(); }
-      );
-    }).catch(()=>{});
-  }
-
-  progressWrap.style.display = 'none';
-  progressText.style.display = 'none';
-  progressFill.style.width = '0%';
-
-  if(uploaded > 0){
-    toast(uploaded + ' archivo(s) subido(s) correctamente');
-    loadFiles(currentFilesCapId);
-  }
-}
-
-async function deleteFile(fullPath, idx){
-  if(!confirm('¿Eliminar este archivo? Esta accion no se puede deshacer.')) return;
-  try {
-    const fileRef = window._ref(window._storage, fullPath);
-    await window._deleteObject(fileRef);
-    toast('Archivo eliminado');
-    loadFiles(currentFilesCapId);
-  } catch(e){ toast('Error al eliminar: ' + e.message,'err'); }
-}
 </script>
 </body>
 </html>
