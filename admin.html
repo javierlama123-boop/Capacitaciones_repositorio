@@ -7,8 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<!-- MSAL.js para autenticación con Azure AD -->
-<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -464,7 +462,7 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 </head>
 <body>
 
-<!-- ── LOGIN SCREEN ──────────────────────────────────────────── -->
+<!-- ── LOGIN SCREEN (Azure Static Web Apps maneja la auth) ───── -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
@@ -478,9 +476,8 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <circle cx="9" cy="9" r="2.5" fill="#E8523A" opacity="0.6"/>
         <circle cx="39" cy="39" r="2.5" fill="#E8523A" opacity="0.6"/>
       </svg>
-      <div><div class="brand">Multi‑X</div><div class="sub">Capacitaciones · SSO</div></div>
+      <div><div class="brand">Multi&#8209;X</div><div class="sub">Capacitaciones &middot; SSO</div></div>
     </div>
-    <!-- FORJA en login -->
     <div style="margin-bottom:1.4rem;margin-top:-0.4rem">
       <svg viewBox="0 0 260 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100px;height:auto">
         <text x="0" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">F</text>
@@ -495,32 +492,27 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
       </svg>
     </div>
-    <h2>Iniciar sesión</h2>
-    <p>Usa tu cuenta corporativa <strong>@multix.cl</strong></p>
-
-    <!-- Botón Microsoft SSO -->
-    <button class="btn-ms" onclick="loginConMicrosoft()" id="btn-ms-login">
-      <svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0">
-        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-      </svg>
-      Iniciar sesión con Microsoft
-    </button>
-
-    <div class="login-err" id="login-err">No tienes acceso asignado o ocurrió un error.</div>
-
-    <!-- Separador modo local (para emergencias) -->
-    <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem">
-      <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-bottom:0.8rem">
-        Acceso de emergencia (sin AD)
-      </div>
+    <h2 id="login-title">Verificando sesion...</h2>
+    <p id="login-status-msg" style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Autenticando con tu cuenta corporativa Microsoft</p>
+    <div id="login-spinner" style="display:flex;justify-content:center;margin-bottom:1.5rem">
+      <span class="loader" style="width:28px;height:28px;border-width:3px"></span>
+    </div>
+    <div id="login-no-role" style="display:none;text-align:center">
+      <div style="font-size:2.2rem;margin-bottom:0.7rem">&#128274;</div>
+      <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.2rem">
+        Tu cuenta <strong id="login-user-email"></strong> no tiene un rol asignado.<br/>
+        Contacta a TI para que te agreguen al grupo <code>MX-Relator</code>, <code>MX-Admin</code> o <code>MX-SuperAdmin</code> en Azure AD.
+      </p>
+      <a href="/.auth/logout" class="btn btn-outline" style="display:inline-block;text-decoration:none;font-size:0.82rem">Cerrar sesion</a>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <div style="margin-top:1.8rem;border-top:1px solid var(--border);padding-top:1.2rem;display:none" id="local-login-section">
+      <div style="font-size:0.7rem;color:var(--muted);text-align:center;margin-bottom:0.8rem;text-transform:uppercase;letter-spacing:0.05em">Acceso de emergencia</div>
       <div class="form-group" style="margin-bottom:0.7rem">
         <input type="text" id="login-user" placeholder="Usuario local" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
       <div class="form-group" style="margin-bottom:0.9rem">
-        <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
+        <input type="password" id="login-pass" placeholder="Contrasena" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
       <button class="btn btn-outline" style="width:100%;font-size:0.82rem" onclick="doLoginLocal()">Ingresar local</button>
     </div>
@@ -949,12 +941,13 @@ select:disabled{opacity:0.5;cursor:not-allowed}
             <input type="text" id="u-nombre" placeholder="Nombre Apellido" />
           </div>
           <div class="form-group">
-            <label>Usuario (login) <span style="color:var(--salmon)">*</span></label>
-            <input type="text" id="u-user" placeholder="nombre.apellido" />
+            <label>Email corporativo <span style="color:var(--salmon)">*</span></label>
+            <input type="email" id="u-email" placeholder="nombre.apellido@multix.cl" />
+            <div class="form-hint">Debe coincidir exactamente con la cuenta Microsoft del usuario</div>
           </div>
           <div class="form-group">
-            <label>Contraseña <span style="color:var(--salmon)">*</span></label>
-            <input type="password" id="u-pass" placeholder="Mínimo 6 caracteres" />
+            <label>Contraseña <span style="color:var(--muted)">— solo para acceso local de emergencia</span></label>
+            <input type="password" id="u-pass" placeholder="Dejar vacío si usará Microsoft" />
           </div>
           <div class="form-group">
             <label>Rol <span style="color:var(--salmon)">*</span></label>
@@ -2040,201 +2033,255 @@ function deleteCapFromMatriz(div, area, idx){
 </html>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// SISTEMA DE ROLES Y AUTENTICACIÓN
+// AUTENTICACIÓN — Azure Static Web Apps + Roles en app
+// Azure SWA solo autentica (verifica @multix.cl).
+// Los roles se asignan aquí dentro por el Super Admin / Admin.
 // ═══════════════════════════════════════════════════════════════
 
-// Usuarios por defecto (en producción esto vendría de Firebase Auth)
-// Se almacena en localStorage para persistir entre sesiones
+// ── Base de usuarios (localStorage) ─────────────────────────
+// Estructura: { id, nombre, email, rol }
+// El email viene de /.auth/me y es el identificador único de AD
 const DEFAULT_USERS = [
-  { id:'u001', nombre:'Super Admin', username:'superadmin', password:'multix2026', rol:'superadmin' }
+  {
+    id:     'u001',
+    nombre: 'Super Admin',
+    email:  'superadmin@multix.cl',   // ← TI debe cambiar por el email real
+    rol:    'superadmin'
+  }
 ];
 
 function getUsers(){
-  const stored = localStorage.getItem('mx_users');
-  if(!stored) {
-    localStorage.setItem('mx_users', JSON.stringify(DEFAULT_USERS));
-    return DEFAULT_USERS;
+  const s = localStorage.getItem('mx_users_v2');
+  if(!s){ localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS)); return DEFAULT_USERS; }
+  return JSON.parse(s);
+}
+function saveUsers(u){ localStorage.setItem('mx_users_v2', JSON.stringify(u)); }
+
+let currentUser   = null;   // usuario activo
+let azureIdentity = null;   // datos crudos de /.auth/me
+
+// ── Inicializar autenticación ────────────────────────────────
+async function initAuth(){
+  try {
+    const resp = await fetch('/.auth/me');
+
+    // Fuera de SWA (desarrollo local) → mostrar fallback local
+    if(!resp.ok){ showLocalFallback(); return; }
+
+    const data      = await resp.json();
+    const principal = data.clientPrincipal;
+
+    // No autenticado (no debería ocurrir con el config.json, pero por si acaso)
+    if(!principal){ showLocalFallback(); return; }
+
+    // Guardar identidad Azure para usarla en el panel
+    azureIdentity = {
+      email:  principal.userDetails,          // email@multix.cl
+      nombre: principal.userDetails,          // Azure devuelve el email como userDetails
+      id:     principal.userId
+    };
+
+    // Buscar este email en la tabla de usuarios de la app
+    const users    = getUsers();
+    const appUser  = users.find(u => u.email.toLowerCase() === azureIdentity.email.toLowerCase());
+
+    if(!appUser){
+      // Autenticado en Azure pero sin rol asignado en la app
+      mostrarSinRol(azureIdentity.email);
+      return;
+    }
+
+    // Todo OK → iniciar sesión
+    currentUser = { ...appUser, source: 'azure' };
+    document.getElementById('login-screen').style.display = 'none';
+    applyRolePermissions();
+    renderUsersPage();
+
+  } catch(e){
+    // Sin endpoint SWA disponible (local) → modo de emergencia
+    console.info('SWA no disponible:', e.message);
+    showLocalFallback();
   }
-  return JSON.parse(stored);
 }
 
-function saveUsers(users){
-  localStorage.setItem('mx_users', JSON.stringify(users));
+function mostrarSinRol(email){
+  document.getElementById('login-spinner').style.display    = 'none';
+  document.getElementById('login-status-msg').style.display = 'none';
+  document.getElementById('login-title').textContent        = 'Sin acceso asignado';
+  document.getElementById('login-user-email').textContent   = email;
+  document.getElementById('login-no-role').style.display    = 'block';
 }
 
-// Sesión actual
-let currentUser = null;
+function showLocalFallback(){
+  document.getElementById('login-spinner').style.display      = 'none';
+  document.getElementById('login-title').textContent          = 'Iniciar sesión';
+  document.getElementById('login-status-msg').textContent     = 'Acceso de emergencia (sin Azure)';
+  document.getElementById('local-login-section').style.display = 'block';
+}
 
-function doLogin(){
-  const username = document.getElementById('login-user').value.trim().toLowerCase();
+// Login de emergencia con usuario/contraseña local
+function doLoginLocal(){
+  const username = (document.getElementById('login-user').value || '').trim().toLowerCase();
   const password = document.getElementById('login-pass').value;
-  const users = getUsers();
-  const user = users.find(u => u.username.toLowerCase() === username && u.password === password);
-  if(!user){
+  // Usuarios locales usan campo email como username también
+  const users    = getUsers();
+  const user     = users.find(u =>
+    (u.email || '').toLowerCase() === username ||
+    (u.username || '').toLowerCase() === username
+  );
+  if(!user || user.password !== password){
     const err = document.getElementById('login-err');
+    err.textContent  = 'Credenciales incorrectas';
     err.style.display = 'block';
     setTimeout(()=>err.style.display='none', 3000);
     return;
   }
-  currentUser = user;
+  currentUser = { ...user, source: 'local' };
   document.getElementById('login-screen').style.display = 'none';
   applyRolePermissions();
   renderUsersPage();
 }
 
-function logout(){
+async function logout(){
   currentUser = null;
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  document.getElementById('login-screen').style.display = 'flex';
+  if(azureIdentity){
+    window.location.href = '/.auth/logout';
+  } else {
+    document.getElementById('login-spinner').style.display     = 'flex';
+    document.getElementById('login-title').textContent         = 'Verificando sesión...';
+    document.getElementById('login-status-msg').textContent    = 'Autenticando con Microsoft';
+    document.getElementById('login-status-msg').style.display  = 'block';
+    document.getElementById('login-no-role').style.display     = 'none';
+    document.getElementById('local-login-section').style.display = 'none';
+    document.getElementById('login-screen').style.display      = 'flex';
+  }
 }
 
+// ── Permisos visuales por rol ────────────────────────────────
 function applyRolePermissions(){
   if(!currentUser) return;
   const rol = currentUser.rol;
-
-  // Update topbar
-  document.getElementById('tb-username').textContent = currentUser.nombre;
-  const badge = document.getElementById('tb-rolebadge');
-  const labels = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
+  const labels  = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
   const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
+
+  document.getElementById('tb-username').textContent        = currentUser.nombre;
+  const badge = document.getElementById('tb-rolebadge');
   badge.textContent = labels[rol] || rol;
-  badge.className = 'role-badge ' + (classes[rol]||'role-relator');
+  badge.className   = 'role-badge ' + (classes[rol] || 'role-relator');
 
-  // Sidebar user info
-  document.getElementById('sb-username').textContent = currentUser.nombre;
-  document.getElementById('sb-userrole').textContent = labels[rol] || rol;
-  document.getElementById('user-info-sidebar').style.display = 'block';
+  document.getElementById('sb-username').textContent          = currentUser.nombre;
+  document.getElementById('sb-userrole').textContent          = labels[rol] || rol;
+  document.getElementById('user-info-sidebar').style.display  = 'block';
 
-  // Show/hide nav items by role
+  // Mostrar/ocultar secciones según rol
   const navMatriz    = document.getElementById('nav-matriz');
   const navUsuarios  = document.getElementById('nav-usuarios');
   const navSecConfig = document.getElementById('nav-sec-config');
 
   if(rol === 'relator'){
-    // Relator: sin acceso a mantenedor matriz ni usuarios
     navMatriz.classList.add('hidden-role');
     navUsuarios.classList.add('hidden-role');
     navSecConfig.classList.add('hidden-role');
-  } else if(rol === 'admin'){
-    // Admin: acceso a matriz y usuarios, NO puede tocar superadmins
-    navMatriz.classList.remove('hidden-role');
-    navUsuarios.classList.remove('hidden-role');
-    navSecConfig.classList.remove('hidden-role');
-  } else if(rol === 'superadmin'){
-    // Super admin: acceso total
+  } else {
     navMatriz.classList.remove('hidden-role');
     navUsuarios.classList.remove('hidden-role');
     navSecConfig.classList.remove('hidden-role');
   }
 }
 
-// ─── MANTENEDOR DE USUARIOS ────────────────────────────────────
+// ── Mantenedor de usuarios ───────────────────────────────────
 function renderUsersPage(){
   const container = document.getElementById('users-container');
   if(!container) return;
-  const users = getUsers();
   const isSuperAdmin = currentUser && currentUser.rol === 'superadmin';
   const isAdmin      = currentUser && currentUser.rol === 'admin';
-
   if(!isSuperAdmin && !isAdmin){
     container.innerHTML = '<div class="empty"><div class="big">🔒</div><p>Sin acceso a esta sección.</p></div>';
     return;
   }
 
+  const users   = getUsers();
   const labels  = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
   const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
 
-  container.innerHTML = users.map(u => {
-    const isSelf   = currentUser && u.id === currentUser.id;
-    const isSA     = u.rol === 'superadmin';
-    // Admin no puede editar ni eliminar superadmins
-    const canEdit  = isSuperAdmin || (!isSA && isAdmin);
-    const canDel   = canEdit && !isSelf && !isSA;
+  const banner = `<div style="background:rgba(0,120,212,0.06);border:1px solid rgba(0,120,212,0.18);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:0.83rem;color:var(--muted);line-height:1.7">
+    <strong style="color:#0078d4">ℹ️ Cómo funciona</strong> — Cuando un usuario inicia sesión con su cuenta Microsoft, el sistema recupera su email desde Azure.
+    Aquí asignas el rol que tendrá en esta aplicación. Si su email no está registrado, verá una pantalla de "sin acceso".
+  </div>`;
 
-    return `<div class="user-row">
+  const rows = users.map(u => {
+    const isSelf  = currentUser && u.id === currentUser.id;
+    const isSA    = u.rol === 'superadmin';
+    const canEdit = isSuperAdmin || (!isSA && isAdmin);
+    const canDel  = canEdit && !isSelf && !isSA;
+    const source  = u.password ? '🔑 Local' : '☁️ Azure AD';
+    return `<div class="user-row" style="grid-template-columns:1.4fr 1fr 1fr auto auto">
       <div>
         <div style="font-weight:600;color:var(--fg)">${u.nombre}</div>
-        <div style="font-size:0.75rem;color:var(--muted)">@${u.username}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">${u.email}</div>
       </div>
       <div><span class="role-badge ${classes[u.rol]||'role-relator'}">${labels[u.rol]||u.rol}</span></div>
+      <div style="font-size:0.75rem;color:var(--muted)">${source}</div>
       <button class="btn btn-outline btn-sm" ${canEdit?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="editUser('${u.id}')">✏️ Editar</button>
       <button class="btn btn-danger-outline btn-sm" ${canDel?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="deleteUser('${u.id}')">🗑️</button>
     </div>`;
   }).join('');
+
+  container.innerHTML = banner + rows;
 }
 
 function openAddUser(){
   document.getElementById('adduser-title').textContent = 'Agregar Usuario';
-  document.getElementById('u-nombre').value = '';
-  document.getElementById('u-user').value = '';
-  document.getElementById('u-pass').value = '';
-  document.getElementById('u-rol').value = '';
-  document.getElementById('u-edit-id').value = '';
+  document.getElementById('u-nombre').value    = '';
+  document.getElementById('u-email').value     = '';
+  document.getElementById('u-pass').value      = '';
+  document.getElementById('u-rol').value       = '';
+  document.getElementById('u-edit-id').value   = '';
   // Admin no puede crear superadmins
-  const rolSel = document.getElementById('u-rol');
-  const saOpt  = rolSel.querySelector('option[value="superadmin"]');
+  const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
   if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
   document.getElementById('addUserOverlay').classList.add('open');
 }
 
 function editUser(id){
-  const users = getUsers();
-  const u = users.find(x=>x.id===id);
+  const u = getUsers().find(x=>x.id===id);
   if(!u) return;
-  // Admin no puede editar superadmins
-  if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){
-    toast('Sin permiso para editar Super Administradores','err'); return;
-  }
+  if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Sin permiso para editar Super Admins','err'); return; }
   document.getElementById('adduser-title').textContent = 'Editar Usuario';
-  document.getElementById('u-nombre').value = u.nombre;
-  document.getElementById('u-user').value = u.username;
-  document.getElementById('u-pass').value = u.password;
-  document.getElementById('u-rol').value = u.rol;
-  document.getElementById('u-edit-id').value = u.id;
-  const rolSel = document.getElementById('u-rol');
-  const saOpt  = rolSel.querySelector('option[value="superadmin"]');
+  document.getElementById('u-nombre').value    = u.nombre;
+  document.getElementById('u-email').value     = u.email;
+  document.getElementById('u-pass').value      = u.password || '';
+  document.getElementById('u-rol').value       = u.rol;
+  document.getElementById('u-edit-id').value   = u.id;
+  const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
   if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
   document.getElementById('addUserOverlay').classList.add('open');
 }
 
 function saveUser(){
-  const nombre = document.getElementById('u-nombre').value.trim();
-  const username = document.getElementById('u-user').value.trim().toLowerCase();
-  const password = document.getElementById('u-pass').value.trim();
-  const rol = document.getElementById('u-rol').value;
-  const editId = document.getElementById('u-edit-id').value;
+  const nombre  = document.getElementById('u-nombre').value.trim();
+  const email   = document.getElementById('u-email').value.trim().toLowerCase();
+  const password= document.getElementById('u-pass').value.trim();
+  const rol     = document.getElementById('u-rol').value;
+  const editId  = document.getElementById('u-edit-id').value;
 
-  if(!nombre||!username||!password||!rol){
-    toast('Completa todos los campos','err'); return;
-  }
-  if(password.length < 6){
-    toast('La contraseña debe tener al menos 6 caracteres','err'); return;
-  }
+  if(!nombre || !email || !rol){ toast('Nombre, email y rol son obligatorios','err'); return; }
+  if(rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Solo Super Admin puede crear Super Admins','err'); return; }
 
   let users = getUsers();
 
-  // Admin no puede asignar rol superadmin
-  if(rol==='superadmin' && currentUser.rol!=='superadmin'){
-    toast('Solo un Super Admin puede crear otros Super Admins','err'); return;
-  }
-
   if(editId){
     const idx = users.findIndex(u=>u.id===editId);
-    if(idx===-1) return;
-    // Super admin: no puede cambiar su propio rol
+    if(idx === -1) return;
+    // Proteger rol superadmin propio
     if(users[idx].rol==='superadmin' && editId===currentUser.id && rol!=='superadmin'){
-      toast('No puedes cambiar tu propio rol de Super Administrador','err'); return;
+      toast('No puedes cambiar tu propio rol de Super Admin','err'); return;
     }
-    users[idx] = {...users[idx], nombre, username, password, rol};
+    users[idx] = { ...users[idx], nombre, email, rol, ...(password ? {password} : {}) };
     toast('✅ Usuario actualizado');
   } else {
-    // Check duplicate username
-    if(users.find(u=>u.username.toLowerCase()===username)){
-      toast('Ya existe un usuario con ese nombre de login','err'); return;
-    }
-    const newId = 'u' + Date.now();
-    users.push({ id:newId, nombre, username, password, rol });
+    if(users.find(u=>u.email.toLowerCase()===email)){ toast('Ya existe un usuario con ese email','err'); return; }
+    users.push({ id:'u'+Date.now(), nombre, email, rol, ...(password ? {password} : {}) });
     toast('✅ Usuario creado');
   }
 
@@ -2247,220 +2294,23 @@ function deleteUser(id){
   const users = getUsers();
   const u = users.find(x=>x.id===id);
   if(!u) return;
-  // Cannot delete superadmin
-  if(u.rol==='superadmin'){
-    toast('No se puede eliminar un Super Administrador','err'); return;
-  }
-  // Cannot delete yourself
-  if(id === currentUser.id){
-    toast('No puedes eliminarte a ti mismo','err'); return;
-  }
-  if(!confirm('¿Eliminar al usuario "' + u.nombre + '"?')) return;
-  const updated = users.filter(x=>x.id!==id);
-  saveUsers(updated);
+  if(u.rol==='superadmin'){ toast('No se puede eliminar un Super Admin','err'); return; }
+  if(id===currentUser.id){ toast('No puedes eliminarte a ti mismo','err'); return; }
+  if(!confirm('¿Eliminar a "'+u.nombre+'"?')) return;
+  saveUsers(users.filter(x=>x.id!==id));
   renderUsersPage();
   toast('Usuario eliminado');
 }
 
-// ─── MANTENEDOR MATRIZ: NUEVA DIVISIÓN / ÁREA ──────────────────
-function toggleNewDiv(){
-  const w = document.getElementById('new-div-wrapper');
-  const sel = document.getElementById('ac-div');
-  w.style.display = w.style.display==='none' ? 'block' : 'none';
-  if(w.style.display==='block'){
-    sel.value = '';
-    document.getElementById('ac-area').innerHTML = '<option value="">— Selecciona una división primero —</option>';
-    document.getElementById('ac-area').disabled = true;
-  }
-}
-
-function toggleNewArea(){
-  const w = document.getElementById('new-area-wrapper');
-  w.style.display = w.style.display==='none' ? 'block' : 'none';
-  if(w.style.display==='block'){
-    document.getElementById('ac-area').value = '';
-  }
-}
-
-// Override onAcDivChange to populate from MATRIZ_LOCAL dynamically
-function onAcDivChange(){
-  const div = document.getElementById('ac-div').value;
-  const sel = document.getElementById('ac-area');
-  sel.innerHTML = '<option value="">— Selecciona un área —</option>';
-  sel.disabled = true;
-  // Hide new-div input when selecting from dropdown
-  document.getElementById('new-div-wrapper').style.display = 'none';
-  if(div && MATRIZ_LOCAL[div]){
-    const areas = MATRIZ_LOCAL[div]['_areas'] || [];
-    areas.forEach(a => {
-      const o = document.createElement('option');
-      o.value = o.textContent = a;
-      sel.appendChild(o);
-    });
-    sel.disabled = false;
-  }
-}
-
-// Rebuild the ac-div select dynamically from MATRIZ_LOCAL
-function rebuildAcDivSelect(){
-  const sel = document.getElementById('ac-div');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— Selecciona —</option>';
-  Object.keys(MATRIZ_LOCAL).sort().forEach(d => {
-    const o = document.createElement('option');
-    o.value = o.textContent = d;
-    if(d===cur) o.selected = true;
-    sel.appendChild(o);
-  });
-}
-
-// Override openAddCap to rebuild select first
-const _origOpenAddCap = window.openAddCap;
-window.openAddCap = function(){
-  rebuildAcDivSelect();
-  document.getElementById('ac-div').value = '';
-  document.getElementById('ac-area').innerHTML = '<option value="">— Selecciona una división primero —</option>';
-  document.getElementById('ac-area').disabled = true;
-  document.getElementById('ac-nombre').value = '';
-  document.getElementById('ac-edit-index').value = '';
-  document.getElementById('new-div-wrapper').style.display = 'none';
-  document.getElementById('new-area-wrapper').style.display = 'none';
-  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
-  document.getElementById('addCapOverlay').classList.add('open');
-};
-
-window.openAddCapFor = function(div, area){
-  rebuildAcDivSelect();
-  document.getElementById('ac-div').value = div;
-  onAcDivChange();
-  if(area) document.getElementById('ac-area').value = area;
-  document.getElementById('ac-nombre').value = '';
-  document.getElementById('ac-edit-index').value = '';
-  document.getElementById('new-div-wrapper').style.display = 'none';
-  document.getElementById('new-area-wrapper').style.display = 'none';
-  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
-  document.getElementById('addCapOverlay').classList.add('open');
-};
-
-// Override saveCapInMatriz to support new division/area
-const _origSaveCap = window.saveCapInMatriz;
-window.saveCapInMatriz = function(){
-  // Resolve division
-  let div = document.getElementById('ac-div').value.trim();
-  const divNew = document.getElementById('ac-div-new').value.trim();
-  if(divNew) div = divNew; // new division overrides select
-
-  // Resolve area
-  let area = document.getElementById('ac-area').value.trim();
-  const areaNw = document.getElementById('ac-area-new').value.trim();
-  if(areaNw) area = areaNw;
-
-  const nombre = document.getElementById('ac-nombre').value.trim();
-  const editIdx = document.getElementById('ac-edit-index').value;
-
-  if(!div || !area || !nombre){
-    toast('Completa División, Área y Nombre','err'); return;
-  }
-
-  // Create division if new
-  if(!MATRIZ_LOCAL[div]){
-    MATRIZ_LOCAL[div] = { '_areas': [] };
-  }
-  // Create area if new
-  if(!MATRIZ_LOCAL[div][area]){
-    MATRIZ_LOCAL[div][area] = [];
-    if(!MATRIZ_LOCAL[div]['_areas'].includes(area)){
-      MATRIZ_LOCAL[div]['_areas'].push(area);
-    }
-  }
-
-  if(editIdx !== ''){
-    MATRIZ_LOCAL[div][area][parseInt(editIdx)] = nombre;
-    toast('✅ Capacitación actualizada');
-  } else {
-    MATRIZ_LOCAL[div][area].push(nombre);
-    toast('✅ Capacitación agregada en ' + div + ' / ' + area);
-  }
-
-  // Sync to live MATRIZ
-  Object.assign(MATRIZ, MATRIZ_LOCAL);
-
-  // Sync to form division selects
-  syncDivisionSelects();
-
-  closeModal('addCapOverlay');
-  document.getElementById('new-div-wrapper').style.display = 'none';
-  document.getElementById('new-area-wrapper').style.display = 'none';
-  document.getElementById('ac-div-new').value = '';
-  document.getElementById('ac-area-new').value = '';
-
-  // Re-render with new division selected in filter
-  if(document.getElementById('mtz-div')){
-    document.getElementById('mtz-div').value = div;
-    onMtzDivChange();
-    document.getElementById('mtz-area').value = area;
-  }
-  renderMatriz();
-};
-
-// Sync all division dropdowns (filter + form) when a new division is added
-function syncDivisionSelects(){
-  const divs = Object.keys(MATRIZ_LOCAL).sort();
-  // Update mtz-div filter
-  const mtzDiv = document.getElementById('mtz-div');
-  if(mtzDiv){
-    const cur = mtzDiv.value;
-    mtzDiv.innerHTML = '<option value="">— Todas las divisiones —</option>';
-    divs.forEach(d => {
-      const o = document.createElement('option');
-      o.value = o.textContent = d;
-      if(d===cur) o.selected = true;
-      mtzDiv.appendChild(o);
-    });
-  }
-  // Update f-area (main form division select)
-  const fArea = document.getElementById('f-area');
-  if(fArea){
-    const cur = fArea.value;
-    fArea.innerHTML = '<option value="">— Selecciona una división —</option>';
-    divs.forEach(d => {
-      const o = document.createElement('option');
-      o.value = o.textContent = d;
-      if(d===cur) o.selected = true;
-      fArea.appendChild(o);
-    });
-  }
-  // Update fil-area filter
-  const filArea = document.getElementById('fil-area');
-  if(filArea){
-    const cur = filArea.value;
-    filArea.innerHTML = '<option value="">— Todas las divisiones —</option>';
-    divs.forEach(d => {
-      const o = document.createElement('option');
-      o.value = o.textContent = d;
-      if(d===cur) o.selected = true;
-      filArea.appendChild(o);
-    });
-  }
-}
-
-// Patch showPage to also render users page when navigating
+// ── Guards de rol en navegación ──────────────────────────────
 const _origShowPage = window.showPage;
 window.showPage = function(name){
-  // Role guard
-  if(!currentUser){
-    toast('Debes iniciar sesión','err'); return;
-  }
-  const rol = currentUser.rol;
-  if(name === 'matriz' && rol === 'relator'){
-    toast('Sin permiso para acceder al Mantenedor Matriz','err'); return;
-  }
-  if(name === 'usuarios' && rol === 'relator'){
-    toast('Sin permiso para acceder a Usuarios y Roles','err'); return;
-  }
+  if(!currentUser){ toast('Debes iniciar sesión','err'); return; }
+  if(name==='matriz'    && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
+  if(name==='usuarios'  && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
   if(_origShowPage) _origShowPage(name);
-  if(name === 'usuarios') renderUsersPage();
-  if(name === 'matriz') { rebuildMtzDivSelect(); renderMatriz(); }
+  if(name==='usuarios') renderUsersPage();
+  if(name==='matriz'){ rebuildMtzDivSelect(); renderMatriz(); }
 };
 
 function rebuildMtzDivSelect(){
@@ -2468,175 +2318,20 @@ function rebuildMtzDivSelect(){
   if(!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">— Todas las divisiones —</option>';
-  Object.keys(MATRIZ_LOCAL).sort().forEach(d => {
+  Object.keys(MATRIZ_LOCAL).sort().forEach(d=>{
     const o = document.createElement('option');
     o.value = o.textContent = d;
-    if(d===cur) o.selected = true;
+    if(d===cur) o.selected=true;
     sel.appendChild(o);
   });
 }
 
-// Initialize on page load - show login
+// ── Arranque ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-screen').style.display = 'flex';
   rebuildAcDivSelect();
+  initAuth();
 });
 </script>
-<script>
-// ═══════════════════════════════════════════════════════════════
-// INTEGRACIÓN AZURE AD — MSAL.js
-// ───────────────────────────────────────────────────────────────
-// ⚠️  TI debe reemplazar estos dos valores con los reales:
-const AZURE_CLIENT_ID = "REEMPLAZAR-CON-APPLICATION-ID";
-const AZURE_TENANT_ID = "REEMPLAZAR-CON-DIRECTORY-ID";
-
-// Nombres de grupos en Azure AD → rol en el sistema
-// ⚠️  Deben coincidir EXACTAMENTE con los nombres en Azure AD
-const GRUPOS_ROL = {
-  "MX-SuperAdmin": "superadmin",
-  "MX-Admin":      "admin",
-  "MX-Relator":    "relator"
-};
-
-// ── Configuración MSAL ──────────────────────────────────────────
-const msalConfig = {
-  auth: {
-    clientId:    AZURE_CLIENT_ID,
-    authority:   "https://login.microsoftonline.com/" + AZURE_TENANT_ID,
-    redirectUri: window.location.href.split("?")[0] // URL actual sin parámetros
-  },
-  cache: {
-    cacheLocation:       "sessionStorage",
-    storeAuthStateInCookie: false
-  }
-};
-
-// Scopes requeridos para leer grupos del usuario
-const LOGIN_SCOPES = {
-  scopes: ["User.Read", "GroupMember.Read.All"]
-};
-
-let msalInstance = null;
-
-// Inicializar MSAL solo si los IDs están configurados
-function initMSAL() {
-  if (AZURE_CLIENT_ID === "REEMPLAZAR-CON-APPLICATION-ID") return null;
-  try {
-    return new msal.PublicClientApplication(msalConfig);
-  } catch(e) {
-    console.warn("MSAL init error:", e);
-    return null;
-  }
-}
-
-// ── Botón "Iniciar sesión con Microsoft" ────────────────────────
-async function loginConMicrosoft() {
-  const btn = document.getElementById("btn-ms-login");
-
-  // Si MSAL no está configurado, mostrar instrucción
-  if (AZURE_CLIENT_ID === "REEMPLAZAR-CON-APPLICATION-ID") {
-    document.getElementById("login-err").textContent =
-      "TI debe configurar CLIENT_ID y TENANT_ID en el archivo para activar el login con Microsoft.";
-    document.getElementById("login-err").style.display = "block";
-    return;
-  }
-
-  if (!msalInstance) msalInstance = initMSAL();
-  if (!msalInstance) return;
-
-  btn.disabled = true;
-  btn.textContent = "Conectando con Microsoft...";
-
-  try {
-    // Popup de login Microsoft
-    const result = await msalInstance.loginPopup(LOGIN_SCOPES);
-    const account = result.account;
-
-    // Obtener token para llamar a Graph API
-    const tokenResult = await msalInstance.acquireTokenSilent({
-      ...LOGIN_SCOPES,
-      account
-    });
-
-    // Consultar grupos del usuario en Microsoft Graph
-    const groupsResp = await fetch(
-      "https://graph.microsoft.com/v1.0/me/memberOf?$select=displayName",
-      { headers: { Authorization: "Bearer " + tokenResult.accessToken } }
-    );
-    const groupsData = await groupsResp.json();
-    const gruposUsuario = (groupsData.value || []).map(g => g.displayName);
-
-    // Determinar rol según grupos
-    let rolAsignado = null;
-    // Prioridad: superadmin > admin > relator
-    for (const [grupo, rol] of Object.entries(GRUPOS_ROL)) {
-      if (gruposUsuario.includes(grupo)) {
-        if (!rolAsignado || rol === "superadmin" || (rol === "admin" && rolAsignado === "relator")) {
-          rolAsignado = rol;
-        }
-      }
-    }
-
-    if (!rolAsignado) {
-      document.getElementById("login-err").textContent =
-        "Tu cuenta no tiene acceso asignado. Contacta a TI para que te agreguen al grupo correspondiente en Azure AD.";
-      document.getElementById("login-err").style.display = "block";
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Iniciar sesión con Microsoft';
-      return;
-    }
-
-    // Login exitoso — construir objeto usuario
-    currentUser = {
-      id:       account.homeAccountId,
-      nombre:   account.name || account.username,
-      username: account.username,
-      rol:      rolAsignado,
-      source:   "azure"   // marcado como usuario AD
-    };
-
-    document.getElementById("login-screen").style.display = "none";
-    applyRolePermissions();
-    renderUsersPage();
-
-  } catch (err) {
-    console.error("MSAL login error:", err);
-    document.getElementById("login-err").textContent =
-      "Error al conectar con Microsoft. Intenta de nuevo o usa acceso local.";
-    document.getElementById("login-err").style.display = "block";
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Iniciar sesión con Microsoft';
-  }
-}
-
-// ── Cerrar sesión Microsoft ──────────────────────────────────────
-async function logoutMicrosoft() {
-  if (msalInstance && currentUser && currentUser.source === "azure") {
-    try {
-      await msalInstance.logoutPopup();
-    } catch(e) { /* silencioso */ }
-  }
-  currentUser = null;
-  document.getElementById("login-user").value = "";
-  document.getElementById("login-pass").value = "";
-  document.getElementById("login-err").style.display = "none";
-  document.getElementById("login-screen").style.display = "flex";
-}
-
-// Sobreescribir logout para cubrir sesiones Microsoft también
-window.logout = logoutMicrosoft;
-
-// ── Manejar redirect al volver de Microsoft (por si se usa redirect en vez de popup) ──
-window.addEventListener("DOMContentLoaded", async () => {
-  msalInstance = initMSAL();
-  if (msalInstance) {
-    try {
-      const result = await msalInstance.handleRedirectPromise();
-      if (result) {
-        // Volvió de un redirect de Microsoft — procesar igual que el popup
-        loginConMicrosoft();
-      }
-    } catch(e) { /* silencioso */ }
-  }
-});
-</script>
+</body>
+</html>
