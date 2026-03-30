@@ -479,17 +479,16 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <div><div class="brand">Multi&#8209;X</div><div class="sub">Capacitaciones &middot; SSO</div></div>
     </div>
     <div style="margin-bottom:1.4rem;margin-top:-0.4rem">
-      <svg viewBox="0 0 260 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100px;height:auto">
-        <text x="0" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">F</text>
-        <text x="128" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">RJA</text>
-        <ellipse cx="100" cy="40" rx="36" ry="33" fill="#E8674A"/>
-        <path d="M67 40 L52 22 L58 40 L52 58 Z" fill="#E8674A"/>
-        <path d="M88 10 Q100 4 112 10 Q105 20 95 18 Z" fill="#E8674A"/>
-        <path d="M95 30 Q108 22 118 32 Q110 42 98 40 Z" fill="#c94d33" opacity="0.6"/>
-        <circle cx="118" cy="30" r="4.5" fill="#1a1a2e"/>
-        <circle cx="119.5" cy="28.5" r="1.5" fill="white" opacity="0.7"/>
-        <path d="M130 38 Q133 33 130 28" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <svg viewBox="-5 0 430 88" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:130px;height:auto">
+        <text x="0" y="78" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="80" fill="#1e3a5f" letter-spacing="-3">F</text>
+        <text x="210" y="78" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="80" fill="#1e3a5f" letter-spacing="-3">RJA</text>
+        <ellipse cx="145" cy="44" rx="58" ry="42" fill="#E8674A"/>
+        <path d="M92 44 L72 20 L82 44 L72 68 Z" fill="#E8674A"/>
+        <path d="M130 5 Q148 0 165 6 Q158 18 140 16 Z" fill="#E8674A"/>
+        <path d="M138 34 Q158 22 178 36 Q168 50 145 48 Z" fill="#c94d33" opacity="0.55"/>
+        <circle cx="182" cy="34" r="6" fill="#1a1a2e"/>
+        <circle cx="184" cy="32" r="2" fill="white" opacity="0.75"/>
+        <path d="M100 42 Q128 37 158 40" stroke="#c94d33" stroke-width="2" fill="none" opacity="0.45"/>
       </svg>
     </div>
     <h2>Bienvenido</h2>
@@ -521,9 +520,9 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <div class="form-group" style="margin-bottom:0.9rem">
         <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
-      <button class="btn btn-primary" style="width:100%" onclick="doLoginLocal()">Ingresar →</button>
+      <button class="btn btn-primary" style="width:100%" id="btn-login-local">Ingresar →</button>
       <div style="text-align:center;margin-top:0.8rem">
-        <span style="font-size:0.7rem;color:var(--muted-light);cursor:pointer;text-decoration:underline" onclick="resetLocalStorage()">¿Problemas para ingresar? Restablecer datos locales</span>
+        <span style="font-size:0.7rem;color:var(--muted-light);cursor:pointer;text-decoration:underline" id="btn-reset-local">¿Problemas para ingresar? Restablecer datos locales</span>
       </div>
     </div>
   </div>
@@ -555,28 +554,24 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 
   <!-- FORJA logo -->
   <div style="padding:0.9rem 1.4rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:flex-start">
-    <svg viewBox="0 0 260 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:120px;height:auto;opacity:0.92">
+    <svg viewBox="-5 0 430 88" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:130px;height:auto;opacity:0.95">
       <!-- F -->
-      <text x="0" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">F</text>
+      <text x="0" y="78" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="80" fill="#ffffff" letter-spacing="-3">F</text>
       <!-- RJA -->
-      <text x="128" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">RJA</text>
-
-      <!-- Pez salmón (ocupa el lugar de la O) -->
-      <!-- Cuerpo principal del pez -->
-      <ellipse cx="100" cy="40" rx="36" ry="33" fill="#E8674A"/>
-      <!-- Cola del pez (izquierda) -->
-      <path d="M67 40 L52 22 L58 40 L52 58 Z" fill="#E8674A"/>
+      <text x="210" y="78" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="80" fill="#ffffff" letter-spacing="-3">RJA</text>
+      <!-- Pez salmón (ocupa la O) -->
+      <ellipse cx="145" cy="44" rx="58" ry="42" fill="#E8674A"/>
+      <!-- Cola -->
+      <path d="M92 44 L72 20 L82 44 L72 68 Z" fill="#E8674A"/>
       <!-- Aleta dorsal -->
-      <path d="M88 10 Q100 4 112 10 Q105 20 95 18 Z" fill="#E8674A"/>
-      <!-- Aleta pectoral (efecto de escama/volumen) -->
-      <path d="M95 30 Q108 22 118 32 Q110 42 98 40 Z" fill="#c94d33" opacity="0.6"/>
+      <path d="M130 5 Q148 0 165 6 Q158 18 140 16 Z" fill="#E8674A"/>
+      <!-- Aleta pectoral con sombra -->
+      <path d="M138 34 Q158 22 178 36 Q168 50 145 48 Z" fill="#c94d33" opacity="0.55"/>
       <!-- Ojo -->
-      <circle cx="118" cy="30" r="4.5" fill="#1a1a2e"/>
-      <circle cx="119.5" cy="28.5" r="1.5" fill="white" opacity="0.7"/>
-      <!-- Boca / boca abierta -->
-      <path d="M130 38 Q133 33 130 28" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <!-- Línea lateral del pez -->
-      <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <circle cx="182" cy="34" r="6" fill="#1a1a2e"/>
+      <circle cx="184" cy="32" r="2" fill="white" opacity="0.75"/>
+      <!-- Línea lateral -->
+      <path d="M100 42 Q128 37 158 40" stroke="#c94d33" stroke-width="2" fill="none" opacity="0.45"/>
     </svg>
   </div>
 
@@ -941,24 +936,63 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 
     <!-- Modal agregar/editar usuario -->
     <div class="overlay" id="addUserOverlay">
-      <div class="modal" style="max-width:460px;text-align:left">
+      <div class="modal" style="max-width:500px;text-align:left">
         <button class="modal-close" onclick="closeModal('addUserOverlay')">✕</button>
         <h3 id="adduser-title">Agregar Usuario</h3>
-        <p class="modal-sub">Completa los datos del nuevo usuario</p>
+        <p class="modal-sub" id="adduser-sub">Selecciona el tipo de acceso del usuario</p>
+
         <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem">
+
+          <!-- Tipo de usuario -->
+          <div class="form-group">
+            <label>Tipo de acceso <span style="color:var(--salmon)">*</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.3rem">
+              <div id="tipo-ad-btn" onclick="setTipoUsuario('ad')" style="border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center">
+                <div style="font-size:1.2rem;margin-bottom:0.3rem">☁️</div>
+                <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">Azure AD</div>
+                <div style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem">Cuenta Microsoft</div>
+              </div>
+              <div id="tipo-local-btn" onclick="setTipoUsuario('local')" style="border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center">
+                <div style="font-size:1.2rem;margin-bottom:0.3rem">🔑</div>
+                <div style="font-size:0.82rem;font-weight:700;color:var(--navy)">Local</div>
+                <div style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem">Usuario y contraseña</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campos comunes -->
           <div class="form-group">
             <label>Nombre completo <span style="color:var(--salmon)">*</span></label>
             <input type="text" id="u-nombre" placeholder="Nombre Apellido" />
           </div>
-          <div class="form-group">
-            <label>Email corporativo <span style="color:var(--salmon)">*</span></label>
-            <input type="email" id="u-email" placeholder="nombre.apellido@multix.cl" />
-            <div class="form-hint">Debe coincidir exactamente con la cuenta Microsoft del usuario</div>
+
+          <!-- Campos Azure AD -->
+          <div id="u-ad-fields">
+            <div class="form-group">
+              <label>Email corporativo <span style="color:var(--salmon)">*</span></label>
+              <input type="email" id="u-email" placeholder="nombre.apellido@multix.cl" />
+              <div class="form-hint">⚠️ Debe coincidir exactamente con el email de la cuenta Microsoft</div>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Contraseña <span style="color:var(--muted)">— solo para acceso local de emergencia</span></label>
-            <input type="password" id="u-pass" placeholder="Dejar vacío si usará Microsoft" />
+
+          <!-- Campos Local -->
+          <div id="u-local-fields" style="display:none">
+            <div style="display:flex;flex-direction:column;gap:1rem">
+              <div class="form-group">
+                <label>Email / Usuario <span style="color:var(--salmon)">*</span></label>
+                <input type="text" id="u-username" placeholder="nombre.apellido o usuario@empresa.cl" />
+              </div>
+              <div class="form-group">
+                <label>Contraseña <span style="color:var(--salmon)">*</span></label>
+                <div style="position:relative">
+                  <input type="password" id="u-pass" placeholder="Mínimo 6 caracteres" style="padding-right:2.8rem"/>
+                  <span onclick="togglePassVis()" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);cursor:pointer;font-size:1rem;color:var(--muted)" id="pass-eye">👁️</span>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- Rol -->
           <div class="form-group">
             <label>Rol <span style="color:var(--salmon)">*</span></label>
             <select id="u-rol">
@@ -968,8 +1002,11 @@ select:disabled{opacity:0.5;cursor:not-allowed}
               <option value="superadmin">Super Administrador</option>
             </select>
           </div>
+
           <input type="hidden" id="u-edit-id" value="" />
+          <input type="hidden" id="u-tipo" value="" />
         </div>
+
         <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
           <button class="btn btn-outline btn-sm" onclick="closeModal('addUserOverlay')">Cancelar</button>
           <button class="btn btn-primary btn-sm" onclick="saveUser()">Guardar</button>
@@ -2259,19 +2296,23 @@ function renderUsersPage(){
   </div>`;
 
   const rows = users.map(u => {
-    const isSelf  = currentUser && u.id === currentUser.id;
-    const isSA    = u.rol === 'superadmin';
-    const canEdit = isSuperAdmin || (!isSA && isAdmin);
-    const canDel  = canEdit && !isSelf && !isSA;
-    const source  = u.password ? '🔑 Local' : '☁️ Azure AD';
-    return `<div class="user-row" style="grid-template-columns:1.4fr 1fr 1fr auto auto">
+    const isSelf   = currentUser && u.id === currentUser.id;
+    const isSA     = u.rol === 'superadmin';
+    const canEdit  = isSuperAdmin || (!isSA && isAdmin);
+    const canDel   = canEdit && !isSelf && !isSA;
+    const isLocal  = u.password || u.tipo === 'local';
+    const tipoBadge = isLocal
+      ? '<span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(107,127,142,0.12);color:var(--muted)">🔑 Local</span>'
+      : '<span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(0,120,212,0.1);color:#0078d4">☁️ Azure AD</span>';
+    const selfTag = isSelf ? '<span style="font-size:0.65rem;color:var(--muted-light);margin-left:4px">(tú)</span>' : '';
+    return `<div class="user-row" style="grid-template-columns:1.6fr 1fr 0.8fr auto auto">
       <div>
-        <div style="font-weight:600;color:var(--fg)">${u.nombre}</div>
-        <div style="font-size:0.75rem;color:var(--muted)">${u.email}</div>
+        <div style="font-weight:600;color:var(--fg)">${u.nombre}${selfTag}</div>
+        <div style="font-size:0.73rem;color:var(--muted);margin-top:0.15rem">${u.email || u.username || '—'}</div>
       </div>
       <div><span class="role-badge ${classes[u.rol]||'role-relator'}">${labels[u.rol]||u.rol}</span></div>
-      <div style="font-size:0.75rem;color:var(--muted)">${source}</div>
-      <button class="btn btn-outline btn-sm" ${canEdit?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="editUser('${u.id}')">✏️ Editar</button>
+      <div>${tipoBadge}</div>
+      <button class="btn btn-outline btn-sm" ${canEdit?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="editUser('${u.id}')">✏️</button>
       <button class="btn btn-danger-outline btn-sm" ${canDel?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="deleteUser('${u.id}')">🗑️</button>
     </div>`;
   }).join('');
@@ -2279,14 +2320,53 @@ function renderUsersPage(){
   container.innerHTML = banner + rows;
 }
 
+// ── Helpers tipo usuario ──────────────────────────────────
+function setTipoUsuario(tipo){
+  document.getElementById('u-tipo').value = tipo;
+
+  const adBtn    = document.getElementById('tipo-ad-btn');
+  const localBtn = document.getElementById('tipo-local-btn');
+  const adFields    = document.getElementById('u-ad-fields');
+  const localFields = document.getElementById('u-local-fields');
+
+  const activeStyle   = 'border:2px solid var(--navy);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center;background:rgba(0,43,79,0.06)';
+  const inactiveStyle = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
+
+  if(tipo === 'ad'){
+    adBtn.style.cssText    = activeStyle;
+    localBtn.style.cssText = inactiveStyle;
+    adFields.style.display    = 'block';
+    localFields.style.display = 'none';
+  } else {
+    localBtn.style.cssText = activeStyle;
+    adBtn.style.cssText    = inactiveStyle;
+    adFields.style.display    = 'none';
+    localFields.style.display = 'block';
+  }
+}
+
+function togglePassVis(){
+  const inp = document.getElementById('u-pass');
+  const eye = document.getElementById('pass-eye');
+  if(inp.type === 'password'){ inp.type = 'text';     eye.textContent = '🙈'; }
+  else                       { inp.type = 'password'; eye.textContent = '👁️'; }
+}
+
 function openAddUser(){
   document.getElementById('adduser-title').textContent = 'Agregar Usuario';
-  document.getElementById('u-nombre').value    = '';
-  document.getElementById('u-email').value     = '';
-  document.getElementById('u-pass').value      = '';
-  document.getElementById('u-rol').value       = '';
-  document.getElementById('u-edit-id').value   = '';
-  // Admin no puede crear superadmins
+  document.getElementById('adduser-sub').textContent   = 'Selecciona el tipo de acceso del usuario';
+  document.getElementById('u-nombre').value   = '';
+  document.getElementById('u-email').value    = '';
+  document.getElementById('u-username') && (document.getElementById('u-username').value = '');
+  document.getElementById('u-pass').value     = '';
+  document.getElementById('u-rol').value      = '';
+  document.getElementById('u-edit-id').value  = '';
+  document.getElementById('u-tipo').value     = '';
+  // Reset tipo buttons to neutral
+  document.getElementById('tipo-ad-btn').style.cssText    = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
+  document.getElementById('tipo-local-btn').style.cssText = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
+  document.getElementById('u-ad-fields').style.display    = 'none';
+  document.getElementById('u-local-fields').style.display = 'none';
   const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
   if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
   document.getElementById('addUserOverlay').classList.add('open');
@@ -2296,41 +2376,72 @@ function editUser(id){
   const u = getUsers().find(x=>x.id===id);
   if(!u) return;
   if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Sin permiso para editar Super Admins','err'); return; }
+
+  const tipo = u.password ? 'local' : 'ad';
+
   document.getElementById('adduser-title').textContent = 'Editar Usuario';
-  document.getElementById('u-nombre').value    = u.nombre;
-  document.getElementById('u-email').value     = u.email;
-  document.getElementById('u-pass').value      = u.password || '';
-  document.getElementById('u-rol').value       = u.rol;
-  document.getElementById('u-edit-id').value   = u.id;
+  document.getElementById('adduser-sub').textContent   = tipo === 'ad' ? '☁️ Usuario Azure AD' : '🔑 Usuario Local';
+  document.getElementById('u-nombre').value   = u.nombre;
+  document.getElementById('u-email').value    = u.email || '';
+  document.getElementById('u-username') && (document.getElementById('u-username').value = u.username || u.email || '');
+  document.getElementById('u-pass').value     = u.password || '';
+  document.getElementById('u-rol').value      = u.rol;
+  document.getElementById('u-edit-id').value  = u.id;
   const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
   if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
+  setTipoUsuario(tipo);
   document.getElementById('addUserOverlay').classList.add('open');
 }
 
 function saveUser(){
+  const tipo    = document.getElementById('u-tipo').value;
   const nombre  = document.getElementById('u-nombre').value.trim();
-  const email   = document.getElementById('u-email').value.trim().toLowerCase();
-  const password= document.getElementById('u-pass').value.trim();
   const rol     = document.getElementById('u-rol').value;
   const editId  = document.getElementById('u-edit-id').value;
 
-  if(!nombre || !email || !rol){ toast('Nombre, email y rol son obligatorios','err'); return; }
-  if(rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Solo Super Admin puede crear Super Admins','err'); return; }
+  if(!tipo && !editId){ toast('Selecciona el tipo de acceso (Azure AD o Local)','err'); return; }
+  if(!nombre){ toast('El nombre es obligatorio','err'); return; }
+  if(!rol)   { toast('Selecciona un rol','err'); return; }
+  if(rol==='superadmin' && currentUser.rol!=='superadmin'){
+    toast('Solo un Super Admin puede crear otros Super Admins','err'); return;
+  }
 
-  let users = getUsers();
+  let users    = getUsers();
+  let userData = {};
+
+  // Resolver tipo efectivo (en edición puede no cambiar)
+  const tipoEfectivo = tipo || (editId ? (users.find(u=>u.id===editId)||{}).password ? 'local' : 'ad' : '');
+
+  if(tipoEfectivo === 'ad'){
+    const email = document.getElementById('u-email').value.trim().toLowerCase();
+    if(!email){ toast('El email corporativo es obligatorio para usuarios Azure AD','err'); return; }
+    if(!editId && users.find(u=>(u.email||'').toLowerCase()===email)){
+      toast('Ya existe un usuario con ese email','err'); return;
+    }
+    userData = { nombre, email, username: email, rol, tipo: 'ad' };
+
+  } else if(tipoEfectivo === 'local'){
+    const username = document.getElementById('u-username').value.trim().toLowerCase();
+    const password = document.getElementById('u-pass').value.trim();
+    if(!username){ toast('El usuario/email es obligatorio','err'); return; }
+    if(!password && !editId){ toast('La contraseña es obligatoria para usuarios locales','err'); return; }
+    if(password && password.length < 6){ toast('La contraseña debe tener al menos 6 caracteres','err'); return; }
+    if(!editId && users.find(u=>(u.username||u.email||'').toLowerCase()===username)){
+      toast('Ya existe un usuario con ese nombre de acceso','err'); return;
+    }
+    userData = { nombre, email: username, username, rol, tipo: 'local', ...(password ? {password} : {}) };
+  }
 
   if(editId){
     const idx = users.findIndex(u=>u.id===editId);
     if(idx === -1) return;
-    // Proteger rol superadmin propio
     if(users[idx].rol==='superadmin' && editId===currentUser.id && rol!=='superadmin'){
       toast('No puedes cambiar tu propio rol de Super Admin','err'); return;
     }
-    users[idx] = { ...users[idx], nombre, email, rol, ...(password ? {password} : {}) };
+    users[idx] = { ...users[idx], ...userData };
     toast('✅ Usuario actualizado');
   } else {
-    if(users.find(u=>u.email.toLowerCase()===email)){ toast('Ya existe un usuario con ese email','err'); return; }
-    users.push({ id:'u'+Date.now(), nombre, email, rol, ...(password ? {password} : {}) });
+    users.push({ id:'u'+Date.now(), ...userData });
     toast('✅ Usuario creado');
   }
 
@@ -2377,7 +2488,82 @@ function rebuildMtzDivSelect(){
 
 // ── Arranque ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // Show login screen
   document.getElementById('login-screen').style.display = 'flex';
+
+  // Wire login button with addEventListener (avoids onclick scope issues)
+  const btnLogin = document.getElementById('btn-login-local');
+  if(btnLogin){
+    btnLogin.addEventListener('click', function(){
+      const username = (document.getElementById('login-user').value || '').trim().toLowerCase();
+      const password = (document.getElementById('login-pass').value || '').trim();
+
+      // Always re-read from storage fresh
+      let users;
+      try {
+        const raw = localStorage.getItem('mx_users_v2');
+        users = raw ? JSON.parse(raw) : null;
+      } catch(e){ users = null; }
+
+      // If no users or superadmin has no password → reset to defaults
+      if(!users || !users.some(u => u.rol === 'superadmin' && u.password)){
+        users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+        localStorage.setItem('mx_users_v2', JSON.stringify(users));
+      }
+
+      const user = users.find(u =>
+        ((u.email || '').toLowerCase()    === username ||
+         (u.username || '').toLowerCase() === username) &&
+        (u.password || '').trim()         === password
+      );
+
+      const errEl = document.getElementById('login-err');
+
+      if(!user){
+        errEl.textContent   = 'Usuario o contraseña incorrectos';
+        errEl.style.color   = 'var(--danger)';
+        errEl.style.display = 'block';
+        setTimeout(() => errEl.style.display = 'none', 3500);
+        return;
+      }
+
+      currentUser = { ...user, source: 'local' };
+      document.getElementById('login-screen').style.display = 'none';
+      applyRolePermissions();
+      renderUsersPage();
+    });
+  }
+
+  // Wire Enter key on password field
+  const passField = document.getElementById('login-pass');
+  if(passField){
+    passField.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') document.getElementById('btn-login-local').click();
+    });
+  }
+  const userField = document.getElementById('login-user');
+  if(userField){
+    userField.addEventListener('keydown', function(e){
+      if(e.key === 'Enter') document.getElementById('btn-login-local').click();
+    });
+  }
+
+  // Wire reset button
+  const btnReset = document.getElementById('btn-reset-local');
+  if(btnReset){
+    btnReset.addEventListener('click', function(){
+      if(!confirm('¿Restablecer datos locales? Restaura el superadmin por defecto.')) return;
+      localStorage.removeItem('mx_users_v2');
+      const errEl = document.getElementById('login-err');
+      errEl.textContent   = 'Restablecido. Usuario: superadmin · Contraseña: multix2026';
+      errEl.style.color   = 'var(--success)';
+      errEl.style.display = 'block';
+      document.getElementById('login-user').value = 'superadmin';
+      document.getElementById('login-pass').value = '';
+      setTimeout(() => { errEl.style.display = 'none'; errEl.style.color = ''; }, 5000);
+    });
+  }
+
   rebuildAcDivSelect();
   initAuth();
 });
