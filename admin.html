@@ -492,29 +492,36 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
       </svg>
     </div>
-    <h2 id="login-title">Verificando sesion...</h2>
-    <p id="login-status-msg" style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Autenticando con tu cuenta corporativa Microsoft</p>
-    <div id="login-spinner" style="display:flex;justify-content:center;margin-bottom:1.5rem">
-      <span class="loader" style="width:28px;height:28px;border-width:3px"></span>
+    <h2>Bienvenido</h2>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem">Verificando tu sesión Microsoft...</p>
+
+    <!-- Spinner mientras se verifica Azure -->
+    <div id="login-spinner" style="display:flex;justify-content:center;margin-bottom:1.2rem">
+      <span class="loader" style="width:24px;height:24px;border-width:3px"></span>
     </div>
-    <div id="login-no-role" style="display:none;text-align:center">
-      <div style="font-size:2.2rem;margin-bottom:0.7rem">&#128274;</div>
+
+    <!-- Sin rol asignado (usuario Azure sin acceso en la app) -->
+    <div id="login-no-role" style="display:none;text-align:center;margin-bottom:1rem">
+      <div style="font-size:2.2rem;margin-bottom:0.7rem">🔒</div>
       <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.2rem">
         Tu cuenta <strong id="login-user-email"></strong> no tiene un rol asignado.<br/>
-        Contacta a TI para que te agreguen al grupo <code>MX-Relator</code>, <code>MX-Admin</code> o <code>MX-SuperAdmin</code> en Azure AD.
+        Contacta al administrador del sistema para que te asigne acceso.
       </p>
-      <a href="/.auth/logout" class="btn btn-outline" style="display:inline-block;text-decoration:none;font-size:0.82rem">Cerrar sesion</a>
+      <a href="/.auth/logout" class="btn btn-outline" style="display:inline-block;text-decoration:none;font-size:0.82rem">Cerrar sesión Microsoft</a>
     </div>
+
     <div class="login-err" id="login-err"></div>
-    <div style="margin-top:1.8rem;border-top:1px solid var(--border);padding-top:1.2rem;display:none" id="local-login-section">
-      <div style="font-size:0.7rem;color:var(--muted);text-align:center;margin-bottom:0.8rem;text-transform:uppercase;letter-spacing:0.05em">Acceso de emergencia</div>
+
+    <!-- Acceso local: siempre visible, se activa cuando no hay Azure -->
+    <div id="local-login-section" style="border-top:1px solid var(--border);padding-top:1.2rem;margin-top:0.5rem">
+      <div style="font-size:0.7rem;color:var(--muted-light);text-align:center;margin-bottom:0.9rem;text-transform:uppercase;letter-spacing:0.06em">Acceso local</div>
       <div class="form-group" style="margin-bottom:0.7rem">
-        <input type="text" id="login-user" placeholder="Usuario local" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
+        <input type="text" id="login-user" placeholder="Usuario" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
       <div class="form-group" style="margin-bottom:0.9rem">
-        <input type="password" id="login-pass" placeholder="Contrasena" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
+        <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
-      <button class="btn btn-outline" style="width:100%;font-size:0.82rem" onclick="doLoginLocal()">Ingresar local</button>
+      <button class="btn btn-primary" style="width:100%" onclick="doLoginLocal()">Ingresar →</button>
     </div>
   </div>
 </div>
@@ -2043,10 +2050,12 @@ function deleteCapFromMatriz(div, area, idx){
 // El email viene de /.auth/me y es el identificador único de AD
 const DEFAULT_USERS = [
   {
-    id:     'u001',
-    nombre: 'Super Admin',
-    email:  'superadmin@multix.cl',   // ← TI debe cambiar por el email real
-    rol:    'superadmin'
+    id:       'u001',
+    nombre:   'Super Admin',
+    email:    'superadmin@multix.cl',   // ← cambiar por tu email real de Microsoft
+    username: 'superadmin',             // usuario para acceso local
+    password: 'multix2026',             // contraseña para acceso local
+    rol:      'superadmin'
   }
 ];
 
@@ -2065,41 +2074,48 @@ async function initAuth(){
   try {
     const resp = await fetch('/.auth/me');
 
-    // Fuera de SWA (desarrollo local) → mostrar fallback local
-    if(!resp.ok){ showLocalFallback(); return; }
+    // Si el endpoint no existe (GitHub Pages, desarrollo local) → fallback local
+    if(!resp.ok){
+      showLocalFallback();
+      return;
+    }
 
-    const data      = await resp.json();
+    let data;
+    try { data = await resp.json(); } catch(e){ showLocalFallback(); return; }
+
     const principal = data.clientPrincipal;
 
-    // No autenticado (no debería ocurrir con el config.json, pero por si acaso)
-    if(!principal){ showLocalFallback(); return; }
+    // Sin sesión Azure activa → fallback local
+    if(!principal){
+      showLocalFallback();
+      return;
+    }
 
-    // Guardar identidad Azure para usarla en el panel
+    // Guardar identidad Azure
     azureIdentity = {
-      email:  principal.userDetails,          // email@multix.cl
-      nombre: principal.userDetails,          // Azure devuelve el email como userDetails
+      email:  principal.userDetails,
+      nombre: principal.userDetails,
       id:     principal.userId
     };
 
-    // Buscar este email en la tabla de usuarios de la app
-    const users    = getUsers();
-    const appUser  = users.find(u => u.email.toLowerCase() === azureIdentity.email.toLowerCase());
+    // Buscar email en tabla de usuarios de la app
+    const users   = getUsers();
+    const appUser = users.find(u => (u.email || '').toLowerCase() === azureIdentity.email.toLowerCase());
 
     if(!appUser){
-      // Autenticado en Azure pero sin rol asignado en la app
       mostrarSinRol(azureIdentity.email);
       return;
     }
 
-    // Todo OK → iniciar sesión
+    // Sesión válida con rol asignado
     currentUser = { ...appUser, source: 'azure' };
     document.getElementById('login-screen').style.display = 'none';
     applyRolePermissions();
     renderUsersPage();
 
   } catch(e){
-    // Sin endpoint SWA disponible (local) → modo de emergencia
-    console.info('SWA no disponible:', e.message);
+    // Error de red u otro → fallback local
+    console.info('SWA auth no disponible:', e.message);
     showLocalFallback();
   }
 }
@@ -2113,10 +2129,8 @@ function mostrarSinRol(email){
 }
 
 function showLocalFallback(){
-  document.getElementById('login-spinner').style.display      = 'none';
-  document.getElementById('login-title').textContent          = 'Iniciar sesión';
-  document.getElementById('login-status-msg').textContent     = 'Acceso de emergencia (sin Azure)';
-  document.getElementById('local-login-section').style.display = 'block';
+  // Ocultar spinner — la sección local ya está visible por defecto
+  document.getElementById('login-spinner').style.display = 'none';
 }
 
 // Login de emergencia con usuario/contraseña local
