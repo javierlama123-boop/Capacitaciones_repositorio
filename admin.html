@@ -410,22 +410,102 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 .chart-wrap{position:relative;height:220px}
 
 @media(max-width:700px){aside{display:none}main{margin-left:0}}
+
+/* ── LOGIN SCREEN ─────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+}
+.login-box{
+  background:var(--surface);border-radius:16px;
+  padding:2.8rem 2.4rem;width:360px;
+  box-shadow:0 32px 80px rgba(0,0,0,0.4);
+}
+.login-logo{display:flex;align-items:center;gap:0.9rem;margin-bottom:2rem}
+.login-logo svg{width:44px;height:44px}
+.login-logo .brand{font-family:"Barlow Condensed",sans-serif;font-size:1.4rem;font-weight:700;color:var(--navy)}
+.login-logo .sub{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.login-box h2{font-family:"Barlow Condensed",sans-serif;font-size:1.5rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem}
+.login-box p{font-size:0.82rem;color:var(--muted);margin-bottom:1.6rem}
+.login-err{font-size:0.78rem;color:var(--danger);margin-top:0.5rem;display:none}
+
+/* ── ROLE BADGES ──────────────────────────────────────────────── */
+.role-badge{
+  display:inline-block;font-size:0.65rem;font-weight:700;
+  letter-spacing:0.07em;text-transform:uppercase;
+  padding:0.22rem 0.65rem;border-radius:20px;
+}
+.role-superadmin{background:rgba(232,82,58,0.15);color:var(--salmon)}
+.role-admin{background:rgba(0,43,79,0.1);color:var(--navy)}
+.role-relator{background:rgba(26,158,110,0.1);color:var(--success)}
+
+/* ── USER TABLE ───────────────────────────────────────────────── */
+.user-row{
+  display:grid;grid-template-columns:1fr 1fr auto auto;
+  gap:1rem;align-items:center;
+  padding:0.75rem 1rem;border-radius:8px;
+  border:1px solid var(--border);margin-bottom:0.5rem;
+  background:var(--surface);font-size:0.87rem;
+}
+.user-row:hover{border-color:var(--navy-light)}
+.nav-item.hidden-role{display:none}
 </style>
 </head>
 <body>
 
+<!-- ── LOGIN SCREEN ──────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="9" fill="url(#ll1)"/>
+        <defs><linearGradient id="ll1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#003d6e"/><stop offset="100%" stop-color="#001e38"/>
+        </linearGradient></defs>
+        <line x1="13" y1="13" x2="35" y2="35" stroke="#E8523A" stroke-width="4.5" stroke-linecap="round"/>
+        <line x1="35" y1="13" x2="13" y2="35" stroke="#E8523A" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="9" cy="9" r="2.5" fill="#E8523A" opacity="0.6"/>
+        <circle cx="39" cy="39" r="2.5" fill="#E8523A" opacity="0.6"/>
+      </svg>
+      <div><div class="brand">Multi‑X</div><div class="sub">Capacitaciones · SSO</div></div>
+    </div>
+    <h2>Iniciar sesión</h2>
+    <p>Ingresa tus credenciales para acceder al panel</p>
+    <div class="form-group" style="margin-bottom:0.9rem">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="nombre.apellido" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="form-group" style="margin-bottom:1.2rem">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Ingresar →</button>
+    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
 <aside>
   <div class="logo-area">
-    <!-- Multi-X Logo SVG -->
     <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="48" height="48" rx="8" fill="#E8523A"/>
-      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
-        font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="20"
-        fill="white" letter-spacing="1">MX</text>
+      <rect width="48" height="48" rx="9" fill="#001e38"/>
+      <rect width="48" height="48" rx="9" fill="url(#lg1)"/>
+      <defs>
+        <linearGradient id="lg1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#003d6e"/>
+          <stop offset="100%" stop-color="#001e38"/>
+        </linearGradient>
+      </defs>
+      <!-- X mark -->
+      <line x1="13" y1="13" x2="35" y2="35" stroke="#E8523A" stroke-width="4.5" stroke-linecap="round"/>
+      <line x1="35" y1="13" x2="13" y2="35" stroke="#E8523A" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- Corner accents -->
+      <circle cx="9" cy="9" r="2.5" fill="#E8523A" opacity="0.6"/>
+      <circle cx="39" cy="39" r="2.5" fill="#E8523A" opacity="0.6"/>
     </svg>
     <div class="logo-text">
-      <div class="brand">Multi-X</div>
-      <div class="sub">Capacitaciones</div>
+      <div class="brand">Multi‑X</div>
+      <div class="sub">Capacitaciones · SSO</div>
     </div>
   </div>
 
@@ -446,15 +526,23 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <span class="nav-icon">📥</span> Exportar Datos
     </div>
 
-    <div class="nav-section">Configuración</div>
+    <div class="nav-section" id="nav-sec-config">Configuración</div>
     <div class="nav-item" onclick="showPage('matriz'); renderMatriz()" id="nav-matriz">
       <span class="nav-icon">🗂️</span> Mantenedor Matriz
+    </div>
+    <div class="nav-item" onclick="showPage('usuarios')" id="nav-usuarios">
+      <span class="nav-icon">👥</span> Usuarios y Roles
     </div>
   </nav>
 
   <div class="sidebar-footer">
+    <div id="user-info-sidebar" style="margin-bottom:0.6rem;display:none">
+      <div style="font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.7)" id="sb-username">—</div>
+      <div style="font-size:0.65rem;color:rgba(255,255,255,0.35)" id="sb-userrole">—</div>
+    </div>
     <span class="dot" id="conn-dot"></span><span id="conn-text">Conectando...</span><br/>
-    Firebase Firestore · Sincronización en tiempo real
+    Firebase Firestore · Sincronización en tiempo real<br/>
+    <span style="cursor:pointer;color:rgba(255,255,255,0.4);text-decoration:underline;font-size:0.68rem" onclick="logout()">Cerrar sesión</span>
   </div>
 </aside>
 
@@ -465,7 +553,13 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <span style="color:var(--border-strong)">›</span>
       <span class="topbar-title" id="topbar-title">Dashboard</span>
     </div>
-    <span class="live-badge" id="live-badge">● En vivo</span>
+    <div style="display:flex;align-items:center;gap:0.8rem">
+      <span class="live-badge" id="live-badge">● En vivo</span>
+      <div id="topbar-user" style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--muted)">
+        <span id="tb-username" style="font-weight:600;color:var(--fg)"></span>
+        <span id="tb-rolebadge" class="role-badge"></span>
+      </div>
+    </div>
   </div>
 
   <div class="content">
@@ -727,30 +821,40 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 
     <!-- Modal agregar/editar capacitación en la matriz -->
     <div class="overlay" id="addCapOverlay">
-      <div class="modal" style="max-width:520px;text-align:left">
+      <div class="modal" style="max-width:540px;text-align:left">
         <button class="modal-close" onclick="closeModal('addCapOverlay')">✕</button>
         <h3 id="addcap-title">Agregar Capacitación</h3>
-        <p class="modal-sub" id="addcap-sub">Completa los campos para agregar una nueva capacitación a la matriz</p>
+        <p class="modal-sub" id="addcap-sub">Completa los campos para agregar a la matriz</p>
         <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem">
+
+          <!-- División: select existente o crear nueva -->
           <div class="form-group">
             <label>División <span style="color:var(--salmon)">*</span></label>
-            <select id="ac-div" onchange="onAcDivChange()">
-              <option value="">— Selecciona —</option>
-              <option>Abastecimiento</option>
-              <option>Administración</option>
-              <option>Agua Dulce</option>
-              <option>Agua Mar</option>
-              <option>Logística</option>
-              <option>Logística &amp; Cosecha</option>
-              <option>Processing</option>
-            </select>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:end">
+              <select id="ac-div" onchange="onAcDivChange()">
+                <option value="">— Selecciona —</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="toggleNewDiv()" type="button" style="white-space:nowrap">+ Nueva</button>
+            </div>
+            <div id="new-div-wrapper" style="display:none;margin-top:0.5rem">
+              <input type="text" id="ac-div-new" placeholder="Nombre nueva división (ej: RRHH)" />
+            </div>
           </div>
+
+          <!-- Área: select existente o crear nueva -->
           <div class="form-group">
             <label>Área <span style="color:var(--salmon)">*</span></label>
-            <select id="ac-area" disabled>
-              <option value="">— Selecciona una división primero —</option>
-            </select>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem;align-items:end">
+              <select id="ac-area" disabled>
+                <option value="">— Selecciona una división primero —</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="toggleNewArea()" type="button" style="white-space:nowrap">+ Nueva</button>
+            </div>
+            <div id="new-area-wrapper" style="display:none;margin-top:0.5rem">
+              <input type="text" id="ac-area-new" placeholder="Nombre nueva área (ej: Calidad)" />
+            </div>
           </div>
+
           <div class="form-group">
             <label>Nombre de la Capacitación <span style="color:var(--salmon)">*</span></label>
             <input type="text" id="ac-nombre" placeholder="Nombre de la capacitación" />
@@ -761,6 +865,67 @@ select:disabled{opacity:0.5;cursor:not-allowed}
           <button class="btn btn-outline btn-sm" onclick="closeModal('addCapOverlay')">Cancelar</button>
           <button class="btn btn-primary btn-sm" onclick="saveCapInMatriz()">Guardar</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal agregar/editar usuario -->
+    <div class="overlay" id="addUserOverlay">
+      <div class="modal" style="max-width:460px;text-align:left">
+        <button class="modal-close" onclick="closeModal('addUserOverlay')">✕</button>
+        <h3 id="adduser-title">Agregar Usuario</h3>
+        <p class="modal-sub">Completa los datos del nuevo usuario</p>
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem">
+          <div class="form-group">
+            <label>Nombre completo <span style="color:var(--salmon)">*</span></label>
+            <input type="text" id="u-nombre" placeholder="Nombre Apellido" />
+          </div>
+          <div class="form-group">
+            <label>Usuario (login) <span style="color:var(--salmon)">*</span></label>
+            <input type="text" id="u-user" placeholder="nombre.apellido" />
+          </div>
+          <div class="form-group">
+            <label>Contraseña <span style="color:var(--salmon)">*</span></label>
+            <input type="password" id="u-pass" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div class="form-group">
+            <label>Rol <span style="color:var(--salmon)">*</span></label>
+            <select id="u-rol">
+              <option value="">— Selecciona un rol —</option>
+              <option value="relator">Relator</option>
+              <option value="admin">Administrador</option>
+              <option value="superadmin">Super Administrador</option>
+            </select>
+          </div>
+          <input type="hidden" id="u-edit-id" value="" />
+        </div>
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+          <button class="btn btn-outline btn-sm" onclick="closeModal('addUserOverlay')">Cancelar</button>
+          <button class="btn btn-primary btn-sm" onclick="saveUser()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── USUARIOS Y ROLES ──────────────────────────────────── -->
+    <div class="page" id="page-usuarios">
+      <div class="page-header">
+        <div>
+          <h2>Usuarios y Roles</h2>
+          <p>Administra los accesos y permisos del sistema</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddUser()">+ Agregar Usuario</button>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;background:rgba(0,43,79,0.03);border-color:rgba(0,43,79,0.12)">
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.83rem">
+          <div><span class="role-badge role-superadmin">Super Admin</span> &nbsp;Acceso total. No puede ser degradado.</div>
+          <div><span class="role-badge role-admin">Admin</span> &nbsp;Acceso a todo salvo gestión de Super Admins.</div>
+          <div><span class="role-badge role-relator">Relator</span> &nbsp;Solo puede registrar y ver capacitaciones.</div>
+        </div>
+      </div>
+
+      <div id="users-container">
+        <div style="color:var(--muted);font-size:0.85rem;padding:1rem">Cargando usuarios...</div>
       </div>
     </div>
 
@@ -1804,3 +1969,447 @@ function deleteCapFromMatriz(div, area, idx){
 </script>
 </body>
 </html>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SISTEMA DE ROLES Y AUTENTICACIÓN
+// ═══════════════════════════════════════════════════════════════
+
+// Usuarios por defecto (en producción esto vendría de Firebase Auth)
+// Se almacena en localStorage para persistir entre sesiones
+const DEFAULT_USERS = [
+  { id:'u001', nombre:'Super Admin', username:'superadmin', password:'multix2026', rol:'superadmin' }
+];
+
+function getUsers(){
+  const stored = localStorage.getItem('mx_users');
+  if(!stored) {
+    localStorage.setItem('mx_users', JSON.stringify(DEFAULT_USERS));
+    return DEFAULT_USERS;
+  }
+  return JSON.parse(stored);
+}
+
+function saveUsers(users){
+  localStorage.setItem('mx_users', JSON.stringify(users));
+}
+
+// Sesión actual
+let currentUser = null;
+
+function doLogin(){
+  const username = document.getElementById('login-user').value.trim().toLowerCase();
+  const password = document.getElementById('login-pass').value;
+  const users = getUsers();
+  const user = users.find(u => u.username.toLowerCase() === username && u.password === password);
+  if(!user){
+    const err = document.getElementById('login-err');
+    err.style.display = 'block';
+    setTimeout(()=>err.style.display='none', 3000);
+    return;
+  }
+  currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  applyRolePermissions();
+  renderUsersPage();
+}
+
+function logout(){
+  currentUser = null;
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function applyRolePermissions(){
+  if(!currentUser) return;
+  const rol = currentUser.rol;
+
+  // Update topbar
+  document.getElementById('tb-username').textContent = currentUser.nombre;
+  const badge = document.getElementById('tb-rolebadge');
+  const labels = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
+  const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
+  badge.textContent = labels[rol] || rol;
+  badge.className = 'role-badge ' + (classes[rol]||'role-relator');
+
+  // Sidebar user info
+  document.getElementById('sb-username').textContent = currentUser.nombre;
+  document.getElementById('sb-userrole').textContent = labels[rol] || rol;
+  document.getElementById('user-info-sidebar').style.display = 'block';
+
+  // Show/hide nav items by role
+  const navMatriz    = document.getElementById('nav-matriz');
+  const navUsuarios  = document.getElementById('nav-usuarios');
+  const navSecConfig = document.getElementById('nav-sec-config');
+
+  if(rol === 'relator'){
+    // Relator: sin acceso a mantenedor matriz ni usuarios
+    navMatriz.classList.add('hidden-role');
+    navUsuarios.classList.add('hidden-role');
+    navSecConfig.classList.add('hidden-role');
+  } else if(rol === 'admin'){
+    // Admin: acceso a matriz y usuarios, NO puede tocar superadmins
+    navMatriz.classList.remove('hidden-role');
+    navUsuarios.classList.remove('hidden-role');
+    navSecConfig.classList.remove('hidden-role');
+  } else if(rol === 'superadmin'){
+    // Super admin: acceso total
+    navMatriz.classList.remove('hidden-role');
+    navUsuarios.classList.remove('hidden-role');
+    navSecConfig.classList.remove('hidden-role');
+  }
+}
+
+// ─── MANTENEDOR DE USUARIOS ────────────────────────────────────
+function renderUsersPage(){
+  const container = document.getElementById('users-container');
+  if(!container) return;
+  const users = getUsers();
+  const isSuperAdmin = currentUser && currentUser.rol === 'superadmin';
+  const isAdmin      = currentUser && currentUser.rol === 'admin';
+
+  if(!isSuperAdmin && !isAdmin){
+    container.innerHTML = '<div class="empty"><div class="big">🔒</div><p>Sin acceso a esta sección.</p></div>';
+    return;
+  }
+
+  const labels  = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
+  const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
+
+  container.innerHTML = users.map(u => {
+    const isSelf   = currentUser && u.id === currentUser.id;
+    const isSA     = u.rol === 'superadmin';
+    // Admin no puede editar ni eliminar superadmins
+    const canEdit  = isSuperAdmin || (!isSA && isAdmin);
+    const canDel   = canEdit && !isSelf && !isSA;
+
+    return `<div class="user-row">
+      <div>
+        <div style="font-weight:600;color:var(--fg)">${u.nombre}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">@${u.username}</div>
+      </div>
+      <div><span class="role-badge ${classes[u.rol]||'role-relator'}">${labels[u.rol]||u.rol}</span></div>
+      <button class="btn btn-outline btn-sm" ${canEdit?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="editUser('${u.id}')">✏️ Editar</button>
+      <button class="btn btn-danger-outline btn-sm" ${canDel?'':'disabled style="opacity:0.3;cursor:not-allowed"'} onclick="deleteUser('${u.id}')">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function openAddUser(){
+  document.getElementById('adduser-title').textContent = 'Agregar Usuario';
+  document.getElementById('u-nombre').value = '';
+  document.getElementById('u-user').value = '';
+  document.getElementById('u-pass').value = '';
+  document.getElementById('u-rol').value = '';
+  document.getElementById('u-edit-id').value = '';
+  // Admin no puede crear superadmins
+  const rolSel = document.getElementById('u-rol');
+  const saOpt  = rolSel.querySelector('option[value="superadmin"]');
+  if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
+  document.getElementById('addUserOverlay').classList.add('open');
+}
+
+function editUser(id){
+  const users = getUsers();
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  // Admin no puede editar superadmins
+  if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){
+    toast('Sin permiso para editar Super Administradores','err'); return;
+  }
+  document.getElementById('adduser-title').textContent = 'Editar Usuario';
+  document.getElementById('u-nombre').value = u.nombre;
+  document.getElementById('u-user').value = u.username;
+  document.getElementById('u-pass').value = u.password;
+  document.getElementById('u-rol').value = u.rol;
+  document.getElementById('u-edit-id').value = u.id;
+  const rolSel = document.getElementById('u-rol');
+  const saOpt  = rolSel.querySelector('option[value="superadmin"]');
+  if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
+  document.getElementById('addUserOverlay').classList.add('open');
+}
+
+function saveUser(){
+  const nombre = document.getElementById('u-nombre').value.trim();
+  const username = document.getElementById('u-user').value.trim().toLowerCase();
+  const password = document.getElementById('u-pass').value.trim();
+  const rol = document.getElementById('u-rol').value;
+  const editId = document.getElementById('u-edit-id').value;
+
+  if(!nombre||!username||!password||!rol){
+    toast('Completa todos los campos','err'); return;
+  }
+  if(password.length < 6){
+    toast('La contraseña debe tener al menos 6 caracteres','err'); return;
+  }
+
+  let users = getUsers();
+
+  // Admin no puede asignar rol superadmin
+  if(rol==='superadmin' && currentUser.rol!=='superadmin'){
+    toast('Solo un Super Admin puede crear otros Super Admins','err'); return;
+  }
+
+  if(editId){
+    const idx = users.findIndex(u=>u.id===editId);
+    if(idx===-1) return;
+    // Super admin: no puede cambiar su propio rol
+    if(users[idx].rol==='superadmin' && editId===currentUser.id && rol!=='superadmin'){
+      toast('No puedes cambiar tu propio rol de Super Administrador','err'); return;
+    }
+    users[idx] = {...users[idx], nombre, username, password, rol};
+    toast('✅ Usuario actualizado');
+  } else {
+    // Check duplicate username
+    if(users.find(u=>u.username.toLowerCase()===username)){
+      toast('Ya existe un usuario con ese nombre de login','err'); return;
+    }
+    const newId = 'u' + Date.now();
+    users.push({ id:newId, nombre, username, password, rol });
+    toast('✅ Usuario creado');
+  }
+
+  saveUsers(users);
+  closeModal('addUserOverlay');
+  renderUsersPage();
+}
+
+function deleteUser(id){
+  const users = getUsers();
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  // Cannot delete superadmin
+  if(u.rol==='superadmin'){
+    toast('No se puede eliminar un Super Administrador','err'); return;
+  }
+  // Cannot delete yourself
+  if(id === currentUser.id){
+    toast('No puedes eliminarte a ti mismo','err'); return;
+  }
+  if(!confirm('¿Eliminar al usuario "' + u.nombre + '"?')) return;
+  const updated = users.filter(x=>x.id!==id);
+  saveUsers(updated);
+  renderUsersPage();
+  toast('Usuario eliminado');
+}
+
+// ─── MANTENEDOR MATRIZ: NUEVA DIVISIÓN / ÁREA ──────────────────
+function toggleNewDiv(){
+  const w = document.getElementById('new-div-wrapper');
+  const sel = document.getElementById('ac-div');
+  w.style.display = w.style.display==='none' ? 'block' : 'none';
+  if(w.style.display==='block'){
+    sel.value = '';
+    document.getElementById('ac-area').innerHTML = '<option value="">— Selecciona una división primero —</option>';
+    document.getElementById('ac-area').disabled = true;
+  }
+}
+
+function toggleNewArea(){
+  const w = document.getElementById('new-area-wrapper');
+  w.style.display = w.style.display==='none' ? 'block' : 'none';
+  if(w.style.display==='block'){
+    document.getElementById('ac-area').value = '';
+  }
+}
+
+// Override onAcDivChange to populate from MATRIZ_LOCAL dynamically
+function onAcDivChange(){
+  const div = document.getElementById('ac-div').value;
+  const sel = document.getElementById('ac-area');
+  sel.innerHTML = '<option value="">— Selecciona un área —</option>';
+  sel.disabled = true;
+  // Hide new-div input when selecting from dropdown
+  document.getElementById('new-div-wrapper').style.display = 'none';
+  if(div && MATRIZ_LOCAL[div]){
+    const areas = MATRIZ_LOCAL[div]['_areas'] || [];
+    areas.forEach(a => {
+      const o = document.createElement('option');
+      o.value = o.textContent = a;
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  }
+}
+
+// Rebuild the ac-div select dynamically from MATRIZ_LOCAL
+function rebuildAcDivSelect(){
+  const sel = document.getElementById('ac-div');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Selecciona —</option>';
+  Object.keys(MATRIZ_LOCAL).sort().forEach(d => {
+    const o = document.createElement('option');
+    o.value = o.textContent = d;
+    if(d===cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// Override openAddCap to rebuild select first
+const _origOpenAddCap = window.openAddCap;
+window.openAddCap = function(){
+  rebuildAcDivSelect();
+  document.getElementById('ac-div').value = '';
+  document.getElementById('ac-area').innerHTML = '<option value="">— Selecciona una división primero —</option>';
+  document.getElementById('ac-area').disabled = true;
+  document.getElementById('ac-nombre').value = '';
+  document.getElementById('ac-edit-index').value = '';
+  document.getElementById('new-div-wrapper').style.display = 'none';
+  document.getElementById('new-area-wrapper').style.display = 'none';
+  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
+  document.getElementById('addCapOverlay').classList.add('open');
+};
+
+window.openAddCapFor = function(div, area){
+  rebuildAcDivSelect();
+  document.getElementById('ac-div').value = div;
+  onAcDivChange();
+  if(area) document.getElementById('ac-area').value = area;
+  document.getElementById('ac-nombre').value = '';
+  document.getElementById('ac-edit-index').value = '';
+  document.getElementById('new-div-wrapper').style.display = 'none';
+  document.getElementById('new-area-wrapper').style.display = 'none';
+  document.getElementById('addcap-title').textContent = 'Agregar Capacitación';
+  document.getElementById('addCapOverlay').classList.add('open');
+};
+
+// Override saveCapInMatriz to support new division/area
+const _origSaveCap = window.saveCapInMatriz;
+window.saveCapInMatriz = function(){
+  // Resolve division
+  let div = document.getElementById('ac-div').value.trim();
+  const divNew = document.getElementById('ac-div-new').value.trim();
+  if(divNew) div = divNew; // new division overrides select
+
+  // Resolve area
+  let area = document.getElementById('ac-area').value.trim();
+  const areaNw = document.getElementById('ac-area-new').value.trim();
+  if(areaNw) area = areaNw;
+
+  const nombre = document.getElementById('ac-nombre').value.trim();
+  const editIdx = document.getElementById('ac-edit-index').value;
+
+  if(!div || !area || !nombre){
+    toast('Completa División, Área y Nombre','err'); return;
+  }
+
+  // Create division if new
+  if(!MATRIZ_LOCAL[div]){
+    MATRIZ_LOCAL[div] = { '_areas': [] };
+  }
+  // Create area if new
+  if(!MATRIZ_LOCAL[div][area]){
+    MATRIZ_LOCAL[div][area] = [];
+    if(!MATRIZ_LOCAL[div]['_areas'].includes(area)){
+      MATRIZ_LOCAL[div]['_areas'].push(area);
+    }
+  }
+
+  if(editIdx !== ''){
+    MATRIZ_LOCAL[div][area][parseInt(editIdx)] = nombre;
+    toast('✅ Capacitación actualizada');
+  } else {
+    MATRIZ_LOCAL[div][area].push(nombre);
+    toast('✅ Capacitación agregada en ' + div + ' / ' + area);
+  }
+
+  // Sync to live MATRIZ
+  Object.assign(MATRIZ, MATRIZ_LOCAL);
+
+  // Sync to form division selects
+  syncDivisionSelects();
+
+  closeModal('addCapOverlay');
+  document.getElementById('new-div-wrapper').style.display = 'none';
+  document.getElementById('new-area-wrapper').style.display = 'none';
+  document.getElementById('ac-div-new').value = '';
+  document.getElementById('ac-area-new').value = '';
+
+  // Re-render with new division selected in filter
+  if(document.getElementById('mtz-div')){
+    document.getElementById('mtz-div').value = div;
+    onMtzDivChange();
+    document.getElementById('mtz-area').value = area;
+  }
+  renderMatriz();
+};
+
+// Sync all division dropdowns (filter + form) when a new division is added
+function syncDivisionSelects(){
+  const divs = Object.keys(MATRIZ_LOCAL).sort();
+  // Update mtz-div filter
+  const mtzDiv = document.getElementById('mtz-div');
+  if(mtzDiv){
+    const cur = mtzDiv.value;
+    mtzDiv.innerHTML = '<option value="">— Todas las divisiones —</option>';
+    divs.forEach(d => {
+      const o = document.createElement('option');
+      o.value = o.textContent = d;
+      if(d===cur) o.selected = true;
+      mtzDiv.appendChild(o);
+    });
+  }
+  // Update f-area (main form division select)
+  const fArea = document.getElementById('f-area');
+  if(fArea){
+    const cur = fArea.value;
+    fArea.innerHTML = '<option value="">— Selecciona una división —</option>';
+    divs.forEach(d => {
+      const o = document.createElement('option');
+      o.value = o.textContent = d;
+      if(d===cur) o.selected = true;
+      fArea.appendChild(o);
+    });
+  }
+  // Update fil-area filter
+  const filArea = document.getElementById('fil-area');
+  if(filArea){
+    const cur = filArea.value;
+    filArea.innerHTML = '<option value="">— Todas las divisiones —</option>';
+    divs.forEach(d => {
+      const o = document.createElement('option');
+      o.value = o.textContent = d;
+      if(d===cur) o.selected = true;
+      filArea.appendChild(o);
+    });
+  }
+}
+
+// Patch showPage to also render users page when navigating
+const _origShowPage = window.showPage;
+window.showPage = function(name){
+  // Role guard
+  if(!currentUser){
+    toast('Debes iniciar sesión','err'); return;
+  }
+  const rol = currentUser.rol;
+  if(name === 'matriz' && rol === 'relator'){
+    toast('Sin permiso para acceder al Mantenedor Matriz','err'); return;
+  }
+  if(name === 'usuarios' && rol === 'relator'){
+    toast('Sin permiso para acceder a Usuarios y Roles','err'); return;
+  }
+  if(_origShowPage) _origShowPage(name);
+  if(name === 'usuarios') renderUsersPage();
+  if(name === 'matriz') { rebuildMtzDivSelect(); renderMatriz(); }
+};
+
+function rebuildMtzDivSelect(){
+  const sel = document.getElementById('mtz-div');
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Todas las divisiones —</option>';
+  Object.keys(MATRIZ_LOCAL).sort().forEach(d => {
+    const o = document.createElement('option');
+    o.value = o.textContent = d;
+    if(d===cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+// Initialize on page load - show login
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-screen').style.display = 'flex';
+  rebuildAcDivSelect();
+});
+</script>
