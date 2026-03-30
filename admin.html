@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- MSAL.js para autenticación con Azure AD -->
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -429,6 +431,14 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 .login-box h2{font-family:"Barlow Condensed",sans-serif;font-size:1.5rem;font-weight:700;color:var(--navy);margin-bottom:0.3rem}
 .login-box p{font-size:0.82rem;color:var(--muted);margin-bottom:1.6rem}
 .login-err{font-size:0.78rem;color:var(--danger);margin-top:0.5rem;display:none}
+.btn-ms{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:0.75rem;
+  padding:0.8rem 1.2rem;border-radius:7px;border:1.5px solid var(--border);
+  background:#fff;font-family:"Barlow",sans-serif;font-size:0.9rem;font-weight:600;
+  color:var(--fg);cursor:pointer;transition:all 0.18s;
+}
+.btn-ms:hover{border-color:#0078d4;box-shadow:0 2px 12px rgba(0,120,212,0.15)}
+.btn-ms:disabled{opacity:0.6;cursor:not-allowed}
 
 /* ── ROLE BADGES ──────────────────────────────────────────────── */
 .role-badge{
@@ -470,18 +480,50 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       </svg>
       <div><div class="brand">Multi‑X</div><div class="sub">Capacitaciones · SSO</div></div>
     </div>
+    <!-- FORJA en login -->
+    <div style="margin-bottom:1.4rem;margin-top:-0.4rem">
+      <svg viewBox="0 0 260 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100px;height:auto">
+        <text x="0" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">F</text>
+        <text x="128" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">RJA</text>
+        <ellipse cx="100" cy="40" rx="36" ry="33" fill="#E8674A"/>
+        <path d="M67 40 L52 22 L58 40 L52 58 Z" fill="#E8674A"/>
+        <path d="M88 10 Q100 4 112 10 Q105 20 95 18 Z" fill="#E8674A"/>
+        <path d="M95 30 Q108 22 118 32 Q110 42 98 40 Z" fill="#c94d33" opacity="0.6"/>
+        <circle cx="118" cy="30" r="4.5" fill="#1a1a2e"/>
+        <circle cx="119.5" cy="28.5" r="1.5" fill="white" opacity="0.7"/>
+        <path d="M130 38 Q133 33 130 28" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
     <h2>Iniciar sesión</h2>
-    <p>Ingresa tus credenciales para acceder al panel</p>
-    <div class="form-group" style="margin-bottom:0.9rem">
-      <label>Usuario</label>
-      <input type="text" id="login-user" placeholder="nombre.apellido" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <p>Usa tu cuenta corporativa <strong>@multix.cl</strong></p>
+
+    <!-- Botón Microsoft SSO -->
+    <button class="btn-ms" onclick="loginConMicrosoft()" id="btn-ms-login">
+      <svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0">
+        <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+        <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+        <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+        <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+      </svg>
+      Iniciar sesión con Microsoft
+    </button>
+
+    <div class="login-err" id="login-err">No tienes acceso asignado o ocurrió un error.</div>
+
+    <!-- Separador modo local (para emergencias) -->
+    <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.2rem">
+      <div style="font-size:0.72rem;color:var(--muted);text-align:center;margin-bottom:0.8rem">
+        Acceso de emergencia (sin AD)
+      </div>
+      <div class="form-group" style="margin-bottom:0.7rem">
+        <input type="text" id="login-user" placeholder="Usuario local" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
+      </div>
+      <div class="form-group" style="margin-bottom:0.9rem">
+        <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
+      </div>
+      <button class="btn btn-outline" style="width:100%;font-size:0.82rem" onclick="doLoginLocal()">Ingresar local</button>
     </div>
-    <div class="form-group" style="margin-bottom:1.2rem">
-      <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Ingresar →</button>
-    <div class="login-err" id="login-err">Usuario o contraseña incorrectos</div>
   </div>
 </div>
 
@@ -507,6 +549,33 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <div class="brand">Multi‑X</div>
       <div class="sub">Capacitaciones · SSO</div>
     </div>
+  </div>
+
+  <!-- FORJA logo -->
+  <div style="padding:0.9rem 1.4rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:flex-start">
+    <svg viewBox="0 0 260 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:120px;height:auto;opacity:0.92">
+      <!-- F -->
+      <text x="0" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">F</text>
+      <!-- RJA -->
+      <text x="128" y="70" font-family="Arial Black, sans-serif" font-weight="900" font-size="78" fill="#1e3a5f" letter-spacing="-2">RJA</text>
+
+      <!-- Pez salmón (ocupa el lugar de la O) -->
+      <!-- Cuerpo principal del pez -->
+      <ellipse cx="100" cy="40" rx="36" ry="33" fill="#E8674A"/>
+      <!-- Cola del pez (izquierda) -->
+      <path d="M67 40 L52 22 L58 40 L52 58 Z" fill="#E8674A"/>
+      <!-- Aleta dorsal -->
+      <path d="M88 10 Q100 4 112 10 Q105 20 95 18 Z" fill="#E8674A"/>
+      <!-- Aleta pectoral (efecto de escama/volumen) -->
+      <path d="M95 30 Q108 22 118 32 Q110 42 98 40 Z" fill="#c94d33" opacity="0.6"/>
+      <!-- Ojo -->
+      <circle cx="118" cy="30" r="4.5" fill="#1a1a2e"/>
+      <circle cx="119.5" cy="28.5" r="1.5" fill="white" opacity="0.7"/>
+      <!-- Boca / boca abierta -->
+      <path d="M130 38 Q133 33 130 28" stroke="#1a1a2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Línea lateral del pez -->
+      <path d="M75 38 Q90 34 108 36" stroke="#c94d33" stroke-width="1.5" fill="none" opacity="0.5"/>
+    </svg>
   </div>
 
   <nav>
@@ -2411,5 +2480,163 @@ function rebuildMtzDivSelect(){
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-screen').style.display = 'flex';
   rebuildAcDivSelect();
+});
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// INTEGRACIÓN AZURE AD — MSAL.js
+// ───────────────────────────────────────────────────────────────
+// ⚠️  TI debe reemplazar estos dos valores con los reales:
+const AZURE_CLIENT_ID = "REEMPLAZAR-CON-APPLICATION-ID";
+const AZURE_TENANT_ID = "REEMPLAZAR-CON-DIRECTORY-ID";
+
+// Nombres de grupos en Azure AD → rol en el sistema
+// ⚠️  Deben coincidir EXACTAMENTE con los nombres en Azure AD
+const GRUPOS_ROL = {
+  "MX-SuperAdmin": "superadmin",
+  "MX-Admin":      "admin",
+  "MX-Relator":    "relator"
+};
+
+// ── Configuración MSAL ──────────────────────────────────────────
+const msalConfig = {
+  auth: {
+    clientId:    AZURE_CLIENT_ID,
+    authority:   "https://login.microsoftonline.com/" + AZURE_TENANT_ID,
+    redirectUri: window.location.href.split("?")[0] // URL actual sin parámetros
+  },
+  cache: {
+    cacheLocation:       "sessionStorage",
+    storeAuthStateInCookie: false
+  }
+};
+
+// Scopes requeridos para leer grupos del usuario
+const LOGIN_SCOPES = {
+  scopes: ["User.Read", "GroupMember.Read.All"]
+};
+
+let msalInstance = null;
+
+// Inicializar MSAL solo si los IDs están configurados
+function initMSAL() {
+  if (AZURE_CLIENT_ID === "REEMPLAZAR-CON-APPLICATION-ID") return null;
+  try {
+    return new msal.PublicClientApplication(msalConfig);
+  } catch(e) {
+    console.warn("MSAL init error:", e);
+    return null;
+  }
+}
+
+// ── Botón "Iniciar sesión con Microsoft" ────────────────────────
+async function loginConMicrosoft() {
+  const btn = document.getElementById("btn-ms-login");
+
+  // Si MSAL no está configurado, mostrar instrucción
+  if (AZURE_CLIENT_ID === "REEMPLAZAR-CON-APPLICATION-ID") {
+    document.getElementById("login-err").textContent =
+      "TI debe configurar CLIENT_ID y TENANT_ID en el archivo para activar el login con Microsoft.";
+    document.getElementById("login-err").style.display = "block";
+    return;
+  }
+
+  if (!msalInstance) msalInstance = initMSAL();
+  if (!msalInstance) return;
+
+  btn.disabled = true;
+  btn.textContent = "Conectando con Microsoft...";
+
+  try {
+    // Popup de login Microsoft
+    const result = await msalInstance.loginPopup(LOGIN_SCOPES);
+    const account = result.account;
+
+    // Obtener token para llamar a Graph API
+    const tokenResult = await msalInstance.acquireTokenSilent({
+      ...LOGIN_SCOPES,
+      account
+    });
+
+    // Consultar grupos del usuario en Microsoft Graph
+    const groupsResp = await fetch(
+      "https://graph.microsoft.com/v1.0/me/memberOf?$select=displayName",
+      { headers: { Authorization: "Bearer " + tokenResult.accessToken } }
+    );
+    const groupsData = await groupsResp.json();
+    const gruposUsuario = (groupsData.value || []).map(g => g.displayName);
+
+    // Determinar rol según grupos
+    let rolAsignado = null;
+    // Prioridad: superadmin > admin > relator
+    for (const [grupo, rol] of Object.entries(GRUPOS_ROL)) {
+      if (gruposUsuario.includes(grupo)) {
+        if (!rolAsignado || rol === "superadmin" || (rol === "admin" && rolAsignado === "relator")) {
+          rolAsignado = rol;
+        }
+      }
+    }
+
+    if (!rolAsignado) {
+      document.getElementById("login-err").textContent =
+        "Tu cuenta no tiene acceso asignado. Contacta a TI para que te agreguen al grupo correspondiente en Azure AD.";
+      document.getElementById("login-err").style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Iniciar sesión con Microsoft';
+      return;
+    }
+
+    // Login exitoso — construir objeto usuario
+    currentUser = {
+      id:       account.homeAccountId,
+      nombre:   account.name || account.username,
+      username: account.username,
+      rol:      rolAsignado,
+      source:   "azure"   // marcado como usuario AD
+    };
+
+    document.getElementById("login-screen").style.display = "none";
+    applyRolePermissions();
+    renderUsersPage();
+
+  } catch (err) {
+    console.error("MSAL login error:", err);
+    document.getElementById("login-err").textContent =
+      "Error al conectar con Microsoft. Intenta de nuevo o usa acceso local.";
+    document.getElementById("login-err").style.display = "block";
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 21 21" style="flex-shrink:0"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg> Iniciar sesión con Microsoft';
+  }
+}
+
+// ── Cerrar sesión Microsoft ──────────────────────────────────────
+async function logoutMicrosoft() {
+  if (msalInstance && currentUser && currentUser.source === "azure") {
+    try {
+      await msalInstance.logoutPopup();
+    } catch(e) { /* silencioso */ }
+  }
+  currentUser = null;
+  document.getElementById("login-user").value = "";
+  document.getElementById("login-pass").value = "";
+  document.getElementById("login-err").style.display = "none";
+  document.getElementById("login-screen").style.display = "flex";
+}
+
+// Sobreescribir logout para cubrir sesiones Microsoft también
+window.logout = logoutMicrosoft;
+
+// ── Manejar redirect al volver de Microsoft (por si se usa redirect en vez de popup) ──
+window.addEventListener("DOMContentLoaded", async () => {
+  msalInstance = initMSAL();
+  if (msalInstance) {
+    try {
+      const result = await msalInstance.handleRedirectPromise();
+      if (result) {
+        // Volvió de un redirect de Microsoft — procesar igual que el popup
+        loginConMicrosoft();
+      }
+    } catch(e) { /* silencioso */ }
+  }
 });
 </script>
