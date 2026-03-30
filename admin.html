@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA9nrkIVS7o8h8865KoLWcLqeyiCzhLhwA",
@@ -32,6 +32,9 @@ window._doc        = doc;
 window._onSnapshot = onSnapshot;
 window._query      = query;
 window._orderBy    = orderBy;
+window._setDoc     = setDoc;
+window._getDoc     = getDoc;
+window._updateDoc  = updateDoc;
 window._fbReady    = true;
 document.dispatchEvent(new Event('fb-ready'));
 </script>
@@ -414,8 +417,23 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 /* ── LOGIN SCREEN ─────────────────────────────────────────────── */
 #login-screen{
   position:fixed;inset:0;background:var(--navy);
-  display:flex;align-items:center;justify-content:center;
+  display:none;align-items:center;justify-content:center;
   z-index:9999;
+}
+#auth-overlay{
+  position:fixed;inset:0;background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9998;flex-direction:column;gap:1rem;
+}
+#auth-overlay .spin{
+  width:36px;height:36px;border-radius:50%;
+  border:3px solid rgba(255,255,255,0.15);
+  border-top-color:#fff;
+  animation:spin 0.8s linear infinite;
+}
+#auth-overlay p{
+  font-family:'Barlow',sans-serif;font-size:0.82rem;
+  color:rgba(255,255,255,0.5);letter-spacing:0.04em;
 }
 .login-box{
   background:var(--surface);border-radius:16px;
@@ -462,6 +480,17 @@ select:disabled{opacity:0.5;cursor:not-allowed}
 </head>
 <body>
 
+<!-- ── AUTH OVERLAY: visible mientras verifica Azure ─────────── -->
+<div id="auth-overlay">
+  <svg viewBox="0 0 460 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:120px;height:auto">
+    <text x="0" y="70" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="72" fill="#ffffff">F</text>
+    <text x="96" y="70" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="72" fill="#E8674A">O</text>
+    <text x="152" y="70" font-family="Arial Black,Impact,sans-serif" font-weight="900" font-size="72" fill="#ffffff">RJA</text>
+  </svg>
+  <div class="spin"></div>
+  <p>Verificando sesión...</p>
+</div>
+
 <!-- ── LOGIN SCREEN (Azure Static Web Apps maneja la auth) ───── -->
 <div id="login-screen">
   <div class="login-box">
@@ -493,14 +522,18 @@ select:disabled{opacity:0.5;cursor:not-allowed}
       <span class="loader" style="width:24px;height:24px;border-width:3px"></span>
     </div>
 
-    <!-- Sin rol asignado (usuario Azure sin acceso en la app) -->
+    <!-- Sin rol asignado (usuario Azure autenticado pero sin rol en la app) -->
     <div id="login-no-role" style="display:none;text-align:center;margin-bottom:1rem">
-      <div style="font-size:2.2rem;margin-bottom:0.7rem">🔒</div>
-      <p style="font-size:0.85rem;color:var(--muted);line-height:1.65;margin-bottom:1.2rem">
-        Tu cuenta <strong id="login-user-email"></strong> no tiene un rol asignado.<br/>
-        Contacta al administrador del sistema para que te asigne acceso.
+      <div style="font-size:2rem;margin-bottom:0.6rem">⏳</div>
+      <p style="font-size:0.88rem;font-weight:600;color:var(--fg);margin-bottom:0.4rem">Cuenta verificada</p>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:0.5rem">
+        <strong id="login-user-email" style="color:var(--navy)"></strong>
       </p>
-      <a href="/.auth/logout" class="btn btn-outline" style="display:inline-block;text-decoration:none;font-size:0.82rem">Cerrar sesión Microsoft</a>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:1.4rem">
+        Tu cuenta Microsoft fue autenticada correctamente, pero aún no tienes un rol asignado en el sistema.<br/>
+        Contacta al administrador para que te asigne acceso desde <strong>Usuarios y Roles</strong>.
+      </p>
+      <a href="/.auth/logout" class="btn btn-outline" style="display:inline-block;text-decoration:none;font-size:0.82rem">Cerrar sesión</a>
     </div>
 
     <div class="login-err" id="login-err"></div>
@@ -602,9 +635,26 @@ select:disabled{opacity:0.5;cursor:not-allowed}
     </div>
     <div style="display:flex;align-items:center;gap:0.8rem">
       <span class="live-badge" id="live-badge">● En vivo</span>
-      <div id="topbar-user" style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;color:var(--muted)">
+      <div id="topbar-user" style="display:flex;align-items:center;gap:0.6rem;font-size:0.82rem;color:var(--muted)">
         <span id="tb-username" style="font-weight:600;color:var(--fg)"></span>
         <span id="tb-rolebadge" class="role-badge"></span>
+        <button onclick="logout()" title="Cerrar sesión" style="
+          display:flex;align-items:center;gap:0.4rem;
+          background:none;border:1.5px solid var(--border);
+          border-radius:6px;padding:0.3rem 0.7rem;
+          font-family:'Barlow',sans-serif;font-size:0.75rem;
+          font-weight:600;color:var(--muted);cursor:pointer;
+          transition:all 0.18s;white-space:nowrap;
+        "
+        onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Salir
+        </button>
       </div>
     </div>
   </div>
@@ -2061,186 +2111,234 @@ function deleteCapFromMatriz(div, area, idx){
 </html>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// AUTENTICACIÓN — Azure Static Web Apps + Roles en app
-// Azure SWA solo autentica (verifica @multix.cl).
-// Los roles se asignan aquí dentro por el Super Admin / Admin.
+// AUTENTICACIÓN — Azure SWA + Roles en Firestore
+// Los usuarios y roles se guardan en Firestore (colección "usuarios")
+// compartida entre todos los dispositivos.
 // ═══════════════════════════════════════════════════════════════
 
-// ── Base de usuarios (localStorage) ─────────────────────────
-// Estructura: { id, nombre, email, rol }
-// El email viene de /.auth/me y es el identificador único de AD
-const DEFAULT_USERS = [
-  {
-    id:       'u001',
-    nombre:   'Super Admin',
-    email:    'superadmin@multix.cl',   // ← cambiar por tu email real de Microsoft
-    username: 'superadmin',             // usuario para acceso local
-    password: 'multix2026',             // contraseña para acceso local
-    rol:      'superadmin'
-  }
-];
+let currentUser   = null;
+let azureIdentity = null;
 
-function getUsers(){
-  try {
-    const s = localStorage.getItem('mx_users_v2');
-    if(!s){
-      localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS));
-      return JSON.parse(JSON.stringify(DEFAULT_USERS));
-    }
-    const stored = JSON.parse(s);
-    // Migración: si el superadmin guardado no tiene password, resetear
-    const hasSuperWithPass = stored.some(u => u.rol === 'superadmin' && u.password);
-    if(!hasSuperWithPass){
-      localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS));
-      return JSON.parse(JSON.stringify(DEFAULT_USERS));
-    }
-    return stored;
-  } catch(e) {
-    localStorage.removeItem('mx_users_v2');
-    return JSON.parse(JSON.stringify(DEFAULT_USERS));
-  }
-}
-function saveUsers(u){ localStorage.setItem('mx_users_v2', JSON.stringify(u)); }
-
-function resetLocalStorage(){
-  if(!confirm('¿Restablecer datos locales? Esto eliminará los usuarios guardados y restaurará el superadmin por defecto.')) return;
-  localStorage.removeItem('mx_users_v2');
-  const err = document.getElementById('login-err');
-  err.textContent   = 'Datos restablecidos. Usuario: superadmin · Contraseña: multix2026';
-  err.style.color   = 'var(--success)';
-  err.style.display = 'block';
-  document.getElementById('login-user').value = 'superadmin';
-  document.getElementById('login-pass').value = '';
-  setTimeout(() => { err.style.display = 'none'; err.style.color = ''; }, 5000);
+// ── Firestore helpers ────────────────────────────────────────
+// Esperar a que Firebase esté listo
+function waitForFirebase(){
+  return new Promise(resolve => {
+    if(window._fbReady) { resolve(); return; }
+    document.addEventListener('fb-ready', resolve, { once: true });
+  });
 }
 
-let currentUser   = null;   // usuario activo
-let azureIdentity = null;   // datos crudos de /.auth/me
+async function fsGetUsers(){
+  await waitForFirebase();
+  const snap = await window._getDocs(window._collection(window._db, 'usuarios'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
 
-// ── Inicializar autenticación ────────────────────────────────
+async function fsGetUser(email){
+  await waitForFirebase();
+  const snap = await window._getDocs(window._collection(window._db, 'usuarios'));
+  const match = snap.docs.find(d => (d.data().email || '').toLowerCase() === email.toLowerCase());
+  return match ? { id: match.id, ...match.data() } : null;
+}
+
+async function fsSaveUser(user){
+  await waitForFirebase();
+  const docId = user.id || ('u_' + Date.now());
+  await window._setDoc(window._doc(window._db, 'usuarios', docId), { ...user, id: docId });
+  return docId;
+}
+
+async function fsDeleteUser(id){
+  await waitForFirebase();
+  await window._deleteDoc(window._doc(window._db, 'usuarios', id));
+}
+
+// Usuario local de emergencia (solo para acceso sin Azure)
+const LOCAL_EMERGENCY = {
+  id: 'local_superadmin',
+  nombre: 'Super Admin Local',
+  email: 'local',
+  username: 'superadmin',
+  password: 'multix2026',
+  rol: 'superadmin',
+  tipo: 'local'
+};
+
+// ── UI helpers ───────────────────────────────────────────────
+function hideOverlay(){
+  const o = document.getElementById('auth-overlay');
+  if(o) o.style.display = 'none';
+}
+function showLoginScreen(){
+  hideOverlay();
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function enterApp(){
+  hideOverlay();
+  document.getElementById('login-screen').style.display = 'none';
+  applyRolePermissions();
+  renderUsersPage();
+}
+function mostrarSinRol(email){
+  document.getElementById('login-spinner').style.display    = 'none';
+  document.getElementById('login-status-msg').style.display = 'none';
+  document.getElementById('login-title').textContent        = 'Acceso pendiente';
+  document.getElementById('login-user-email').textContent   = email;
+  document.getElementById('login-no-role').style.display    = 'block';
+  document.getElementById('local-login-section').style.display = 'none';
+  showLoginScreen();
+}
+function showLocalFallback(){
+  document.getElementById('login-spinner').style.display = 'none';
+  // Asegurar que login-screen sea visible cuando no hay Azure
+  document.getElementById('login-screen').style.display = 'flex';
+  hideOverlay();
+}
+
+// ── Auth principal ───────────────────────────────────────────
 async function initAuth(){
   try {
     const resp = await fetch('/.auth/me');
+    console.log('[Auth] status:', resp.status, 'ok:', resp.ok);
 
-    // Si el endpoint no existe (GitHub Pages, desarrollo local) → fallback local
+    // /.auth/me devuelve 200 pero con clientPrincipal null si no hay sesión Azure
+    // En GitHub Pages devuelve 404
     if(!resp.ok){
-      showLocalFallback();
-      return;
+      console.log('[Auth] endpoint no disponible → acceso local');
+      showLoginScreen(); showLocalFallback(); return;
     }
 
     let data;
-    try { data = await resp.json(); } catch(e){ showLocalFallback(); return; }
+    try { data = await resp.json(); } catch(e){
+      console.log('[Auth] JSON error:', e.message, '→ acceso local');
+      showLoginScreen(); showLocalFallback(); return;
+    }
 
     const principal = data.clientPrincipal;
+    console.log('[Auth] clientPrincipal:', JSON.stringify(principal));
 
-    // Sin sesión Azure activa → fallback local
+    // clientPrincipal null → sesión cerrada o no autenticado
+    // Con staticwebapp.config.json configurado, Azure redirige automáticamente
+    // pero por si acaso, redirigimos manualmente al login de AAD
     if(!principal){
-      showLocalFallback();
+      console.log('[Auth] sin principal → redirigiendo a login Azure');
+      // En SWA: redirigir al login de Azure
+      // Fuera de SWA (local): mostrar acceso local
+      if(window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'){
+        window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      showLoginScreen(); showLocalFallback(); return;
+    }
+
+    const emailAzure  = (principal.userDetails || '').toLowerCase();
+    const nombreAzure = principal.userDetails || principal.userId;
+    azureIdentity = { email: emailAzure, nombre: nombreAzure, id: principal.userId };
+    console.log('[Auth] email Azure:', emailAzure);
+
+    // Esperar Firebase y buscar en Firestore
+    // Separado en try-catch propio para distinguir error de Firestore vs error de auth
+    let appUser = null;
+    let allUsers = [];
+    try {
+      await waitForFirebase();
+      console.log('[Auth] Firebase listo, buscando usuario...');
+      appUser  = await fsGetUser(emailAzure);
+      allUsers = await fsGetUsers();
+      console.log('[Auth] appUser:', appUser ? appUser.rol : 'no encontrado');
+      console.log('[Auth] total usuarios en Firestore:', allUsers.length);
+    } catch(fsErr){
+      console.error('[Auth] Error Firestore:', fsErr.message);
+      // Si Firestore falla (permisos, red), mostrar error específico
+      document.getElementById('login-spinner').style.display = 'none';
+      document.getElementById('login-status-msg').textContent = 'Error conectando con la base de datos. Intenta recargar.';
+      showLoginScreen();
       return;
     }
 
-    // Guardar identidad Azure
-    azureIdentity = {
-      email:  principal.userDetails,
-      nombre: principal.userDetails,
-      id:     principal.userId
-    };
-
-    // Buscar email en tabla de usuarios de la app
-    const users   = getUsers();
-    const appUser = users.find(u => (u.email || '').toLowerCase() === azureIdentity.email.toLowerCase());
-
-    if(!appUser){
-      mostrarSinRol(azureIdentity.email);
+    if(appUser){
+      currentUser = { ...appUser, nombre: appUser.nombre || nombreAzure, source: 'azure' };
+      enterApp();
       return;
     }
 
-    // Sesión válida con rol asignado
-    currentUser = { ...appUser, source: 'azure' };
-    document.getElementById('login-screen').style.display = 'none';
-    applyRolePermissions();
-    renderUsersPage();
+    // No existe → primer usuario Azure o sin rol
+    const hasSAinFS = allUsers.some(u => u.rol === 'superadmin' && u.tipo === 'ad');
+
+    if(!hasSAinFS){
+      const nuevoSA = {
+        id:       'u_az_' + principal.userId.replace(/[^a-z0-9]/gi,'').slice(0,12),
+        nombre:   nombreAzure,
+        email:    emailAzure,
+        username: emailAzure,
+        rol:      'superadmin',
+        tipo:     'ad'
+      };
+      try {
+        await fsSaveUser(nuevoSA);
+        currentUser = { ...nuevoSA, source: 'azure' };
+        enterApp();
+        toast('✅ Bienvenido. Registrado como Super Admin.');
+      } catch(saveErr){
+        console.error('[Auth] Error guardando superadmin:', saveErr.message);
+        mostrarSinRol(emailAzure + ' (error al guardar — verifica reglas Firestore)');
+      }
+      return;
+    }
+
+    mostrarSinRol(emailAzure);
 
   } catch(e){
-    // Error de red u otro → fallback local
-    console.info('SWA auth no disponible:', e.message);
+    // Solo errores del fetch de /.auth/me llegan aquí
+    console.info('[Auth] Error en /.auth/me:', e.message);
+    showLoginScreen();
     showLocalFallback();
   }
 }
 
-function mostrarSinRol(email){
-  document.getElementById('login-spinner').style.display    = 'none';
-  document.getElementById('login-status-msg').style.display = 'none';
-  document.getElementById('login-title').textContent        = 'Sin acceso asignado';
-  document.getElementById('login-user-email').textContent   = email;
-  document.getElementById('login-no-role').style.display    = 'block';
-}
-
-function showLocalFallback(){
-  // Ocultar spinner — la sección local ya está visible por defecto
-  document.getElementById('login-spinner').style.display = 'none';
-}
-
-// Login de emergencia con usuario/contraseña local
+// ── Login local de emergencia ────────────────────────────────
 function doLoginLocal(){
   const username = (document.getElementById('login-user').value || '').trim().toLowerCase();
   const password = (document.getElementById('login-pass').value || '').trim();
-  const users    = getUsers();
+  const errEl    = document.getElementById('login-err');
 
-  const user = users.find(u =>
-    ((u.email    || '').toLowerCase() === username ||
-     (u.username || '').toLowerCase() === username) &&
-    (u.password || '') === password
-  );
-
-  const err = document.getElementById('login-err');
-
-  if(!user){
-    err.textContent   = 'Usuario o contraseña incorrectos';
-    err.style.display = 'block';
-    setTimeout(() => err.style.display = 'none', 3500);
+  // Solo acepta el usuario de emergencia hardcodeado
+  if(username !== LOCAL_EMERGENCY.username || password !== LOCAL_EMERGENCY.password){
+    errEl.textContent   = 'Credenciales incorrectas';
+    errEl.style.color   = 'var(--danger)';
+    errEl.style.display = 'block';
+    setTimeout(() => errEl.style.display = 'none', 3500);
     return;
   }
 
-  err.style.display = 'none';
-  currentUser = { ...user, source: 'local' };
+  currentUser = { ...LOCAL_EMERGENCY, source: 'local' };
   document.getElementById('login-screen').style.display = 'none';
   applyRolePermissions();
   renderUsersPage();
 }
 
 async function logout(){
-  currentUser = null;
-  if(azureIdentity){
-    window.location.href = '/.auth/logout';
-  } else {
-    document.getElementById('login-spinner').style.display     = 'flex';
-    document.getElementById('login-title').textContent         = 'Verificando sesión...';
-    document.getElementById('login-status-msg').textContent    = 'Autenticando con Microsoft';
-    document.getElementById('login-status-msg').style.display  = 'block';
-    document.getElementById('login-no-role').style.display     = 'none';
-    document.getElementById('local-login-section').style.display = 'none';
-    document.getElementById('login-screen').style.display      = 'flex';
-  }
+  currentUser   = null;
+  azureIdentity = null;
+  window.location.href = '/.auth/logout?post_logout_redirect_uri=/.auth/login/aad';
 }
 
-// ── Permisos visuales por rol ────────────────────────────────
+// ── Permisos por rol ─────────────────────────────────────────
 function applyRolePermissions(){
   if(!currentUser) return;
-  const rol = currentUser.rol;
+  const rol     = currentUser.rol;
   const labels  = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
   const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
 
-  document.getElementById('tb-username').textContent        = currentUser.nombre;
+  document.getElementById('tb-username').textContent       = currentUser.nombre;
   const badge = document.getElementById('tb-rolebadge');
   badge.textContent = labels[rol] || rol;
   badge.className   = 'role-badge ' + (classes[rol] || 'role-relator');
 
-  document.getElementById('sb-username').textContent          = currentUser.nombre;
-  document.getElementById('sb-userrole').textContent          = labels[rol] || rol;
-  document.getElementById('user-info-sidebar').style.display  = 'block';
+  document.getElementById('sb-username').textContent         = currentUser.nombre;
+  document.getElementById('sb-userrole').textContent         = labels[rol] || rol;
+  document.getElementById('user-info-sidebar').style.display = 'block';
 
-  // Mostrar/ocultar secciones según rol
   const navMatriz    = document.getElementById('nav-matriz');
   const navUsuarios  = document.getElementById('nav-usuarios');
   const navSecConfig = document.getElementById('nav-sec-config');
@@ -2256,24 +2354,28 @@ function applyRolePermissions(){
   }
 }
 
-// ── Mantenedor de usuarios ───────────────────────────────────
-function renderUsersPage(){
+// ── Mantenedor de usuarios (Firestore) ──────────────────────
+async function renderUsersPage(){
   const container = document.getElementById('users-container');
   if(!container) return;
   const isSuperAdmin = currentUser && currentUser.rol === 'superadmin';
   const isAdmin      = currentUser && currentUser.rol === 'admin';
+
   if(!isSuperAdmin && !isAdmin){
     container.innerHTML = '<div class="empty"><div class="big">🔒</div><p>Sin acceso a esta sección.</p></div>';
     return;
   }
 
-  const users   = getUsers();
+  container.innerHTML = '<span class="loader"></span> Cargando usuarios...';
+
+  const users   = await fsGetUsers();
   const labels  = { superadmin:'Super Admin', admin:'Administrador', relator:'Relator' };
   const classes = { superadmin:'role-superadmin', admin:'role-admin', relator:'role-relator' };
 
   const banner = `<div style="background:rgba(0,120,212,0.06);border:1px solid rgba(0,120,212,0.18);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.2rem;font-size:0.83rem;color:var(--muted);line-height:1.7">
-    <strong style="color:#0078d4">ℹ️ Cómo funciona</strong> — Cuando un usuario inicia sesión con su cuenta Microsoft, el sistema recupera su email desde Azure.
-    Aquí asignas el rol que tendrá en esta aplicación. Si su email no está registrado, verá una pantalla de "sin acceso".
+    <strong style="color:#0078d4">ℹ️ Cómo funciona</strong> — Los usuarios se guardan en Firestore y son compartidos entre todos los dispositivos.
+    Cuando alguien inicia sesión con Microsoft, el sistema busca su email aquí y asigna su rol.
+    Si su email no está registrado, verá "Acceso pendiente".
   </div>`;
 
   const rows = users.map(u => {
@@ -2281,15 +2383,15 @@ function renderUsersPage(){
     const isSA     = u.rol === 'superadmin';
     const canEdit  = isSuperAdmin || (!isSA && isAdmin);
     const canDel   = canEdit && !isSelf && !isSA;
-    const isLocal  = u.password || u.tipo === 'local';
+    const isLocal  = u.tipo === 'local';
     const tipoBadge = isLocal
       ? '<span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(107,127,142,0.12);color:var(--muted)">🔑 Local</span>'
       : '<span style="font-size:0.65rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:20px;background:rgba(0,120,212,0.1);color:#0078d4">☁️ Azure AD</span>';
-    const selfTag = isSelf ? '<span style="font-size:0.65rem;color:var(--muted-light);margin-left:4px">(tú)</span>' : '';
+    const selfTag = isSelf ? ' <span style="font-size:0.65rem;color:var(--muted-light)">(tú)</span>' : '';
     return `<div class="user-row" style="grid-template-columns:1.6fr 1fr 0.8fr auto auto">
       <div>
         <div style="font-weight:600;color:var(--fg)">${u.nombre}${selfTag}</div>
-        <div style="font-size:0.73rem;color:var(--muted);margin-top:0.15rem">${u.email || u.username || '—'}</div>
+        <div style="font-size:0.73rem;color:var(--muted);margin-top:0.15rem">${u.email || '—'}</div>
       </div>
       <div><span class="role-badge ${classes[u.rol]||'role-relator'}">${labels[u.rol]||u.rol}</span></div>
       <div>${tipoBadge}</div>
@@ -2298,54 +2400,38 @@ function renderUsersPage(){
     </div>`;
   }).join('');
 
-  container.innerHTML = banner + rows;
+  container.innerHTML = banner + (rows || '<div style="color:var(--muted);padding:1rem">Sin usuarios registrados.</div>');
 }
 
-// ── Helpers tipo usuario ──────────────────────────────────
+// ── Helpers tipo usuario ─────────────────────────────────────
 function setTipoUsuario(tipo){
   document.getElementById('u-tipo').value = tipo;
-
-  const adBtn    = document.getElementById('tipo-ad-btn');
-  const localBtn = document.getElementById('tipo-local-btn');
-  const adFields    = document.getElementById('u-ad-fields');
-  const localFields = document.getElementById('u-local-fields');
-
   const activeStyle   = 'border:2px solid var(--navy);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center;background:rgba(0,43,79,0.06)';
   const inactiveStyle = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
-
-  if(tipo === 'ad'){
-    adBtn.style.cssText    = activeStyle;
-    localBtn.style.cssText = inactiveStyle;
-    adFields.style.display    = 'block';
-    localFields.style.display = 'none';
-  } else {
-    localBtn.style.cssText = activeStyle;
-    adBtn.style.cssText    = inactiveStyle;
-    adFields.style.display    = 'none';
-    localFields.style.display = 'block';
-  }
+  document.getElementById('tipo-ad-btn').style.cssText    = tipo==='ad'    ? activeStyle : inactiveStyle;
+  document.getElementById('tipo-local-btn').style.cssText = tipo==='local' ? activeStyle : inactiveStyle;
+  document.getElementById('u-ad-fields').style.display    = tipo==='ad'    ? 'block' : 'none';
+  document.getElementById('u-local-fields').style.display = tipo==='local' ? 'block' : 'none';
 }
 
 function togglePassVis(){
   const inp = document.getElementById('u-pass');
   const eye = document.getElementById('pass-eye');
-  if(inp.type === 'password'){ inp.type = 'text';     eye.textContent = '🙈'; }
-  else                       { inp.type = 'password'; eye.textContent = '👁️'; }
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  eye.textContent = inp.type==='password' ? '👁️' : '🙈';
 }
 
 function openAddUser(){
   document.getElementById('adduser-title').textContent = 'Agregar Usuario';
-  document.getElementById('adduser-sub').textContent   = 'Selecciona el tipo de acceso del usuario';
-  document.getElementById('u-nombre').value   = '';
-  document.getElementById('u-email').value    = '';
-  document.getElementById('u-username') && (document.getElementById('u-username').value = '');
-  document.getElementById('u-pass').value     = '';
-  document.getElementById('u-rol').value      = '';
-  document.getElementById('u-edit-id').value  = '';
-  document.getElementById('u-tipo').value     = '';
-  // Reset tipo buttons to neutral
-  document.getElementById('tipo-ad-btn').style.cssText    = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
-  document.getElementById('tipo-local-btn').style.cssText = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
+  document.getElementById('adduser-sub').textContent   = 'Selecciona el tipo de acceso';
+  ['u-nombre','u-email','u-pass'].forEach(id => document.getElementById(id).value = '');
+  const un = document.getElementById('u-username'); if(un) un.value = '';
+  document.getElementById('u-rol').value     = '';
+  document.getElementById('u-edit-id').value = '';
+  document.getElementById('u-tipo').value    = '';
+  const inactiveStyle = 'border:2px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.18s;text-align:center';
+  document.getElementById('tipo-ad-btn').style.cssText    = inactiveStyle;
+  document.getElementById('tipo-local-btn').style.cssText = inactiveStyle;
   document.getElementById('u-ad-fields').style.display    = 'none';
   document.getElementById('u-local-fields').style.display = 'none';
   const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
@@ -2354,91 +2440,90 @@ function openAddUser(){
 }
 
 function editUser(id){
-  const u = getUsers().find(x=>x.id===id);
-  if(!u) return;
-  if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Sin permiso para editar Super Admins','err'); return; }
-
-  const tipo = u.password ? 'local' : 'ad';
-
-  document.getElementById('adduser-title').textContent = 'Editar Usuario';
-  document.getElementById('adduser-sub').textContent   = tipo === 'ad' ? '☁️ Usuario Azure AD' : '🔑 Usuario Local';
-  document.getElementById('u-nombre').value   = u.nombre;
-  document.getElementById('u-email').value    = u.email || '';
-  document.getElementById('u-username') && (document.getElementById('u-username').value = u.username || u.email || '');
-  document.getElementById('u-pass').value     = u.password || '';
-  document.getElementById('u-rol').value      = u.rol;
-  document.getElementById('u-edit-id').value  = u.id;
-  const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
-  if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
-  setTipoUsuario(tipo);
-  document.getElementById('addUserOverlay').classList.add('open');
+  fsGetUsers().then(users => {
+    const u = users.find(x=>x.id===id);
+    if(!u) return;
+    if(u.rol==='superadmin' && currentUser.rol!=='superadmin'){ toast('Sin permiso para editar Super Admins','err'); return; }
+    const tipo = u.tipo || (u.password ? 'local' : 'ad');
+    document.getElementById('adduser-title').textContent = 'Editar Usuario';
+    document.getElementById('adduser-sub').textContent   = tipo==='ad' ? '☁️ Usuario Azure AD' : '🔑 Usuario Local';
+    document.getElementById('u-nombre').value   = u.nombre || '';
+    document.getElementById('u-email').value    = u.email  || '';
+    const un = document.getElementById('u-username'); if(un) un.value = u.username || u.email || '';
+    document.getElementById('u-pass').value     = u.password || '';
+    document.getElementById('u-rol').value      = u.rol;
+    document.getElementById('u-edit-id').value  = u.id;
+    document.getElementById('u-tipo').value     = tipo;
+    const saOpt = document.querySelector('#u-rol option[value="superadmin"]');
+    if(saOpt) saOpt.disabled = currentUser && currentUser.rol !== 'superadmin';
+    setTipoUsuario(tipo);
+    document.getElementById('addUserOverlay').classList.add('open');
+  });
 }
 
-function saveUser(){
-  const tipo    = document.getElementById('u-tipo').value;
-  const nombre  = document.getElementById('u-nombre').value.trim();
-  const rol     = document.getElementById('u-rol').value;
-  const editId  = document.getElementById('u-edit-id').value;
+async function saveUser(){
+  const tipo   = document.getElementById('u-tipo').value;
+  const nombre = document.getElementById('u-nombre').value.trim();
+  const rol    = document.getElementById('u-rol').value;
+  const editId = document.getElementById('u-edit-id').value;
 
-  if(!tipo && !editId){ toast('Selecciona el tipo de acceso (Azure AD o Local)','err'); return; }
+  if(!tipo && !editId){ toast('Selecciona el tipo de acceso','err'); return; }
   if(!nombre){ toast('El nombre es obligatorio','err'); return; }
   if(!rol)   { toast('Selecciona un rol','err'); return; }
   if(rol==='superadmin' && currentUser.rol!=='superadmin'){
     toast('Solo un Super Admin puede crear otros Super Admins','err'); return;
   }
 
-  let users    = getUsers();
+  const users = await fsGetUsers();
   let userData = {};
-
-  // Resolver tipo efectivo (en edición puede no cambiar)
-  const tipoEfectivo = tipo || (editId ? (users.find(u=>u.id===editId)||{}).password ? 'local' : 'ad' : '');
+  const tipoEfectivo = tipo || (editId ? (users.find(u=>u.id===editId)||{}).tipo || 'ad' : 'ad');
 
   if(tipoEfectivo === 'ad'){
     const email = document.getElementById('u-email').value.trim().toLowerCase();
-    if(!email){ toast('El email corporativo es obligatorio para usuarios Azure AD','err'); return; }
+    if(!email){ toast('El email corporativo es obligatorio','err'); return; }
     if(!editId && users.find(u=>(u.email||'').toLowerCase()===email)){
       toast('Ya existe un usuario con ese email','err'); return;
     }
-    userData = { nombre, email, username: email, rol, tipo: 'ad' };
+    userData = { nombre, email, rol, tipo: 'ad' };
 
-  } else if(tipoEfectivo === 'local'){
+  } else {
     const username = document.getElementById('u-username').value.trim().toLowerCase();
     const password = document.getElementById('u-pass').value.trim();
-    if(!username){ toast('El usuario/email es obligatorio','err'); return; }
-    if(!password && !editId){ toast('La contraseña es obligatoria para usuarios locales','err'); return; }
-    if(password && password.length < 6){ toast('La contraseña debe tener al menos 6 caracteres','err'); return; }
-    if(!editId && users.find(u=>(u.username||u.email||'').toLowerCase()===username)){
-      toast('Ya existe un usuario con ese nombre de acceso','err'); return;
+    if(!username){ toast('El usuario es obligatorio','err'); return; }
+    if(!password && !editId){ toast('La contraseña es obligatoria','err'); return; }
+    if(password && password.length < 6){ toast('Mínimo 6 caracteres','err'); return; }
+    if(!editId && users.find(u=>(u.email||'').toLowerCase()===username)){
+      toast('Ya existe un usuario con ese nombre','err'); return;
     }
-    userData = { nombre, email: username, username, rol, tipo: 'local', ...(password ? {password} : {}) };
+    userData = { nombre, email: username, username, rol, tipo: 'local', ...(password?{password}:{}) };
   }
 
   if(editId){
-    const idx = users.findIndex(u=>u.id===editId);
-    if(idx === -1) return;
-    if(users[idx].rol==='superadmin' && editId===currentUser.id && rol!=='superadmin'){
+    const existing = users.find(u=>u.id===editId);
+    if(!existing) return;
+    if(existing.rol==='superadmin' && editId===currentUser.id && rol!=='superadmin'){
       toast('No puedes cambiar tu propio rol de Super Admin','err'); return;
     }
-    users[idx] = { ...users[idx], ...userData };
+    await fsSaveUser({ ...existing, ...userData, id: editId });
     toast('✅ Usuario actualizado');
   } else {
-    users.push({ id:'u'+Date.now(), ...userData });
+    const newId = 'u_' + Date.now();
+    await fsSaveUser({ id: newId, ...userData });
     toast('✅ Usuario creado');
   }
 
-  saveUsers(users);
   closeModal('addUserOverlay');
   renderUsersPage();
 }
 
-function deleteUser(id){
-  const users = getUsers();
+async function deleteUser(id){
+  const users = await fsGetUsers();
   const u = users.find(x=>x.id===id);
   if(!u) return;
   if(u.rol==='superadmin'){ toast('No se puede eliminar un Super Admin','err'); return; }
   if(id===currentUser.id){ toast('No puedes eliminarte a ti mismo','err'); return; }
   if(!confirm('¿Eliminar a "'+u.nombre+'"?')) return;
-  saveUsers(users.filter(x=>x.id!==id));
+  await fsDeleteUser(id);
   renderUsersPage();
   toast('Usuario eliminado');
 }
@@ -2447,107 +2532,38 @@ function deleteUser(id){
 const _origShowPage = window.showPage;
 window.showPage = function(name){
   if(!currentUser){ toast('Debes iniciar sesión','err'); return; }
-  if(name==='matriz'    && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
-  if(name==='usuarios'  && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
+  if(name==='matriz'   && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
+  if(name==='usuarios' && currentUser.rol==='relator'){ toast('Sin permiso','err'); return; }
   if(_origShowPage) _origShowPage(name);
   if(name==='usuarios') renderUsersPage();
-  if(name==='matriz'){ rebuildMtzDivSelect(); renderMatriz(); }
+  if(name==='matriz') renderMatriz();
 };
-
-function rebuildMtzDivSelect(){
-  const sel = document.getElementById('mtz-div');
-  if(!sel) return;
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">— Todas las divisiones —</option>';
-  Object.keys(MATRIZ_LOCAL).sort().forEach(d=>{
-    const o = document.createElement('option');
-    o.value = o.textContent = d;
-    if(d===cur) o.selected=true;
-    sel.appendChild(o);
-  });
-}
 
 // ── Arranque ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  // Show login screen
-  document.getElementById('login-screen').style.display = 'flex';
-
-  // Wire login button with addEventListener (avoids onclick scope issues)
+  // Wire login button
   const btnLogin = document.getElementById('btn-login-local');
   if(btnLogin){
     btnLogin.addEventListener('click', function(){
-      const username = (document.getElementById('login-user').value || '').trim().toLowerCase();
-      const password = (document.getElementById('login-pass').value || '').trim();
-
-      // Always re-read from storage fresh
-      let users;
-      try {
-        const raw = localStorage.getItem('mx_users_v2');
-        users = raw ? JSON.parse(raw) : null;
-      } catch(e){ users = null; }
-
-      // If no users or superadmin has no password → reset to defaults
-      if(!users || !users.some(u => u.rol === 'superadmin' && u.password)){
-        users = JSON.parse(JSON.stringify(DEFAULT_USERS));
-        localStorage.setItem('mx_users_v2', JSON.stringify(users));
-      }
-
-      const user = users.find(u =>
-        ((u.email || '').toLowerCase()    === username ||
-         (u.username || '').toLowerCase() === username) &&
-        (u.password || '').trim()         === password
-      );
-
-      const errEl = document.getElementById('login-err');
-
-      if(!user){
-        errEl.textContent   = 'Usuario o contraseña incorrectos';
-        errEl.style.color   = 'var(--danger)';
-        errEl.style.display = 'block';
-        setTimeout(() => errEl.style.display = 'none', 3500);
-        return;
-      }
-
-      currentUser = { ...user, source: 'local' };
-      document.getElementById('login-screen').style.display = 'none';
-      applyRolePermissions();
-      renderUsersPage();
+      doLoginLocal();
     });
   }
-
-  // Wire Enter key on password field
   const passField = document.getElementById('login-pass');
-  if(passField){
-    passField.addEventListener('keydown', function(e){
-      if(e.key === 'Enter') document.getElementById('btn-login-local').click();
-    });
-  }
+  if(passField) passField.addEventListener('keydown', e=>{ if(e.key==='Enter') doLoginLocal(); });
   const userField = document.getElementById('login-user');
-  if(userField){
-    userField.addEventListener('keydown', function(e){
-      if(e.key === 'Enter') document.getElementById('btn-login-local').click();
-    });
-  }
+  if(userField) userField.addEventListener('keydown', e=>{ if(e.key==='Enter') doLoginLocal(); });
 
-  // Wire reset button
+  // Wire reset link — ahora ya no aplica con Firestore, mostrar mensaje
   const btnReset = document.getElementById('btn-reset-local');
   if(btnReset){
     btnReset.addEventListener('click', function(){
-      if(!confirm('¿Restablecer datos locales? Restaura el superadmin por defecto.')) return;
-      localStorage.removeItem('mx_users_v2');
-      const errEl = document.getElementById('login-err');
-      errEl.textContent   = 'Restablecido. Usuario: superadmin · Contraseña: multix2026';
-      errEl.style.color   = 'var(--success)';
-      errEl.style.display = 'block';
-      document.getElementById('login-user').value = 'superadmin';
-      document.getElementById('login-pass').value = '';
-      setTimeout(() => { errEl.style.display = 'none'; errEl.style.color = ''; }, 5000);
+      toast('Los usuarios están en Firestore. Usa el acceso local de emergencia: superadmin / multix2026', 'ok');
     });
   }
 
-  rebuildAcDivSelect();
   initAuth();
 });
 </script>
+
 </body>
 </html>
