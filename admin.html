@@ -522,6 +522,9 @@ select:disabled{opacity:0.5;cursor:not-allowed}
         <input type="password" id="login-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLoginLocal()"/>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="doLoginLocal()">Ingresar →</button>
+      <div style="text-align:center;margin-top:0.8rem">
+        <span style="font-size:0.7rem;color:var(--muted-light);cursor:pointer;text-decoration:underline" onclick="resetLocalStorage()">¿Problemas para ingresar? Restablecer datos locales</span>
+      </div>
     </div>
   </div>
 </div>
@@ -2060,11 +2063,38 @@ const DEFAULT_USERS = [
 ];
 
 function getUsers(){
-  const s = localStorage.getItem('mx_users_v2');
-  if(!s){ localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS)); return DEFAULT_USERS; }
-  return JSON.parse(s);
+  try {
+    const s = localStorage.getItem('mx_users_v2');
+    if(!s){
+      localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS));
+      return JSON.parse(JSON.stringify(DEFAULT_USERS));
+    }
+    const stored = JSON.parse(s);
+    // Migración: si el superadmin guardado no tiene password, resetear
+    const hasSuperWithPass = stored.some(u => u.rol === 'superadmin' && u.password);
+    if(!hasSuperWithPass){
+      localStorage.setItem('mx_users_v2', JSON.stringify(DEFAULT_USERS));
+      return JSON.parse(JSON.stringify(DEFAULT_USERS));
+    }
+    return stored;
+  } catch(e) {
+    localStorage.removeItem('mx_users_v2');
+    return JSON.parse(JSON.stringify(DEFAULT_USERS));
+  }
 }
 function saveUsers(u){ localStorage.setItem('mx_users_v2', JSON.stringify(u)); }
+
+function resetLocalStorage(){
+  if(!confirm('¿Restablecer datos locales? Esto eliminará los usuarios guardados y restaurará el superadmin por defecto.')) return;
+  localStorage.removeItem('mx_users_v2');
+  const err = document.getElementById('login-err');
+  err.textContent   = 'Datos restablecidos. Usuario: superadmin · Contraseña: multix2026';
+  err.style.color   = 'var(--success)';
+  err.style.display = 'block';
+  document.getElementById('login-user').value = 'superadmin';
+  document.getElementById('login-pass').value = '';
+  setTimeout(() => { err.style.display = 'none'; err.style.color = ''; }, 5000);
+}
 
 let currentUser   = null;   // usuario activo
 let azureIdentity = null;   // datos crudos de /.auth/me
@@ -2136,20 +2166,25 @@ function showLocalFallback(){
 // Login de emergencia con usuario/contraseña local
 function doLoginLocal(){
   const username = (document.getElementById('login-user').value || '').trim().toLowerCase();
-  const password = document.getElementById('login-pass').value;
-  // Usuarios locales usan campo email como username también
+  const password = (document.getElementById('login-pass').value || '').trim();
   const users    = getUsers();
-  const user     = users.find(u =>
-    (u.email || '').toLowerCase() === username ||
-    (u.username || '').toLowerCase() === username
+
+  const user = users.find(u =>
+    ((u.email    || '').toLowerCase() === username ||
+     (u.username || '').toLowerCase() === username) &&
+    (u.password || '') === password
   );
-  if(!user || user.password !== password){
-    const err = document.getElementById('login-err');
-    err.textContent  = 'Credenciales incorrectas';
+
+  const err = document.getElementById('login-err');
+
+  if(!user){
+    err.textContent   = 'Usuario o contraseña incorrectos';
     err.style.display = 'block';
-    setTimeout(()=>err.style.display='none', 3000);
+    setTimeout(() => err.style.display = 'none', 3500);
     return;
   }
+
+  err.style.display = 'none';
   currentUser = { ...user, source: 'local' };
   document.getElementById('login-screen').style.display = 'none';
   applyRolePermissions();
