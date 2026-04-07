@@ -33,7 +33,7 @@ window._getDocs    = getDocs;
 window._updateDoc  = updateDoc;
 window._increment  = increment;
 window._fbReady    = true;
-setTimeout(() => document.dispatchEvent(new Event('fb-ready')), 0);
+document.dispatchEvent(new Event('fb-ready'));
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -46,6 +46,7 @@ setTimeout(() => document.dispatchEvent(new Event('fb-ready')), 0);
   --card:#ffffff;
   --fg:#0d1f2d;
   --muted:#6b7f8e;
+  --muted-light:#97aab6;
   --border:#dce3ea;
   --success:#1a9e6e;
   --success-bg:#e8f5ee;
@@ -75,7 +76,6 @@ body{
 @keyframes spin{to{transform:rotate(360deg)}}
 #s-loading p{color:var(--muted);font-size:0.9rem}
 
-/* NO PARAMS / ERROR */
 .state h2{
   font-family:'Barlow Condensed',sans-serif;
   font-size:1.8rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem;
@@ -103,8 +103,6 @@ body{
   width:200px;height:200px;border-radius:50%;
   background:rgba(232,82,58,0.12);pointer-events:none;
 }
-
-/* Logo en banner */
 .banner-logo{
   display:flex;align-items:center;gap:0.6rem;margin-bottom:1rem;
 }
@@ -119,7 +117,6 @@ body{
   text-transform:uppercase;letter-spacing:0.1em;
   color:rgba(255,255,255,0.45);
 }
-
 .banner-tag{
   font-size:0.65rem;font-weight:700;letter-spacing:0.1em;
   text-transform:uppercase;
@@ -157,7 +154,8 @@ label{
 }
 .req{color:var(--salmon)}
 
-input{
+/* Input base */
+input, select{
   font-family:'Barlow',sans-serif;font-size:1rem;
   padding:0.85rem 1.1rem;
   background:var(--card);
@@ -165,15 +163,43 @@ input{
   color:var(--fg);outline:none;
   transition:border-color 0.2s,box-shadow 0.2s;
   -webkit-appearance:none;
+  width:100%;
 }
-input:focus{
+input:focus, select:focus{
   border-color:var(--navy);
   box-shadow:0 0 0 3px rgba(0,43,79,0.1);
 }
-input.error{border-color:var(--danger);animation:shake 0.3s ease}
+input.error, select.error{
+  border-color:var(--danger);
+  animation:shake 0.3s ease;
+}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 
-/* RUT validation feedback */
+/* División: solo lectura, visualmente bloqueado */
+.division-display{
+  font-family:'Barlow',sans-serif;font-size:1rem;
+  padding:0.85rem 1.1rem;
+  background:#eef1f5;
+  border:1.5px solid var(--border);border-radius:9px;
+  color:var(--muted);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.division-display .lock-icon{font-size:0.8rem;opacity:0.6}
+
+/* Select con flecha custom */
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7f8e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 1rem center;
+  padding-right:2.5rem;
+  cursor:pointer;
+}
+select:disabled{
+  opacity:0.5;cursor:not-allowed;
+  background-color:#f0f2f5;
+}
+
+/* RUT feedback */
 .rut-feedback{
   font-size:0.72rem;margin-top:0.25rem;
   min-height:1rem;transition:color 0.2s;
@@ -181,6 +207,7 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 .rut-feedback.ok{color:var(--success)}
 .rut-feedback.err{color:var(--danger)}
 
+/* Submit */
 .submit-btn{
   width:100%;padding:1rem;
   background:var(--navy);color:#fff;border:none;
@@ -199,7 +226,7 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
   vertical-align:middle;margin-right:8px;
 }
 
-/* ALERTS */
+/* Alerts */
 .alert{border-radius:8px;padding:0.8rem 1rem;font-size:0.83rem;margin-bottom:1rem;display:none}
 .alert-warn{background:#fff8e1;border:1px solid #f0c040;color:#7a5c00}
 .alert-err{background:#fde8e8;border:1px solid var(--danger);color:#a02020}
@@ -212,7 +239,6 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 /* SUCCESS */
 #s-success{animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275)}
 @keyframes popIn{from{opacity:0;transform:scale(0.88)}to{opacity:1;transform:scale(1)}}
-
 .success-circle{
   width:88px;height:88px;border-radius:50%;
   background:var(--success-bg);
@@ -242,7 +268,7 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 .countdown{font-size:0.76rem;color:var(--muted);margin-top:0.6rem}
 .countdown span{color:var(--salmon);font-weight:700}
 
-/* FOOTER */
+/* Footer */
 .kiosk-footer{
   text-align:center;padding:0.8rem;
   font-size:0.67rem;color:var(--muted);
@@ -270,14 +296,14 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
 <div class="state" id="s-noparams">
   <div class="big-icon">📋</div>
   <h2>Registro de Asistencia</h2>
-  <p>Esta pantalla debe abrirse escaneando el codigo QR de la capacitacion o desde el panel de administracion.</p>
+  <p>Esta pantalla debe abrirse escaneando el código QR de la capacitación o desde el panel de administración.</p>
 </div>
 
 <!-- ERROR -->
 <div class="state" id="s-error">
   <div class="big-icon">⚠️</div>
-  <h2>Capacitacion no encontrada</h2>
-  <p>El codigo QR puede ser invalido o la capacitacion fue eliminada.<br/>Contacta al administrador.</p>
+  <h2>Capacitación no encontrada</h2>
+  <p>El código QR puede ser inválido o la capacitación fue eliminada.<br/>Contacta al administrador.</p>
 </div>
 
 <!-- FORMULARIO -->
@@ -291,258 +317,336 @@ input.error{border-color:var(--danger);animation:shake 0.3s ease}
       <div class="banner-tag">✅ Registro de Asistencia</div>
       <div class="banner-title" id="banner-title">—</div>
       <div class="banner-meta">
-        <span class="bmeta" id="banner-area" style="display:none"></span>
-        <span class="bmeta" id="banner-lugar">📍 —</span>
+        <span class="bmeta" id="banner-division" style="display:none"></span>
         <span class="bmeta" id="banner-fecha">📅 —</span>
         <span class="bmeta" id="banner-dur">⏱ —</span>
+        <span class="bmeta" id="banner-relator" style="display:none"></span>
       </div>
     </div>
   </div>
 
   <div class="form-area">
     <div class="form-title">Ingresa tus datos</div>
-    <div class="form-sub">Completa el formulario para confirmar tu participacion.</div>
+    <div class="form-sub">Completa el formulario para confirmar tu participación en esta capacitación.</div>
 
-    <div class="alert alert-warn" id="alert-dup">⚠️ Ya existe un registro con este RUT para esta capacitacion.</div>
+    <div class="alert alert-warn" id="alert-dup">⚠️ Ya existe un registro con este RUT para esta capacitación.</div>
     <div class="alert alert-err" id="alert-err">❌ Error al guardar. Intenta nuevamente.</div>
 
+    <!-- NOMBRE -->
     <div class="field">
       <label>Nombre completo <span class="req">*</span></label>
       <input type="text" id="inp-nombre" placeholder="Tu nombre y apellido" autocomplete="name"/>
     </div>
 
+    <!-- RUT -->
     <div class="field">
       <label>RUT <span class="req">*</span></label>
       <input type="text" id="inp-rut" placeholder="12.345.678-9" oninput="validarRutEnVivo(this)"/>
       <div class="rut-feedback" id="rut-feedback"></div>
     </div>
 
+    <!-- DIVISIÓN (solo lectura) -->
     <div class="field">
-      <label>Area / Departamento</label>
-      <input type="text" id="inp-area" placeholder="Ej: Operaciones"/>
+      <label>División</label>
+      <div class="division-display" id="display-division">
+        <span class="lock-icon">🔒</span>
+        <span id="division-text">—</span>
+      </div>
+    </div>
+
+    <!-- ÁREA (selector filtrado por las áreas del curso) -->
+    <div class="field">
+      <label>Área <span class="req">*</span></label>
+      <select id="inp-area">
+        <option value="">— Selecciona tu área —</option>
+      </select>
     </div>
 
     <button class="submit-btn" id="submit-btn" onclick="registrar()">Confirmar Asistencia ✓</button>
-    <p class="privacy">☁️ Tus datos se guardan en Firebase y solo seran usados para el registro de asistencia.</p>
+    <p class="privacy">🔒 Tus datos se guardan de forma segura y solo serán usados para el registro oficial de asistencia.</p>
   </div>
 </div>
 
-<!-- EXITO -->
+<!-- ÉXITO -->
 <div class="state" id="s-success">
   <div class="success-circle">✓</div>
   <h2>¡Asistencia registrada!</h2>
-  <p>Tu participacion ha sido confirmada y guardada en el sistema.</p>
+  <p>Tu participación ha sido confirmada y guardada en el sistema.</p>
   <div class="success-course" id="success-course">—</div>
   <button class="reset-btn" onclick="resetForm()">Registrar otro participante</button>
-  <div class="countdown">Volviendo automaticamente en <span id="count">8</span>s...</div>
+  <div class="countdown">Volviendo automáticamente en <span id="count">8</span>s...</div>
 </div>
 
 <div class="kiosk-footer">
   <span class="mx-tag">MX</span>
-  Sistema de Capacitaciones · Area de Recursos Humanos · ☁️ Firebase
+  Sistema de Capacitaciones · Área de Recursos Humanos · 🔒 Firebase
 </div>
 
 <script>
-let currentCap = null;
+let currentCap    = null;
 let countdownTimer = null;
+let capAreas      = [];   // áreas disponibles para este curso
 
-// Timeout de seguridad: si Firebase no responde en 10s, mostrar error
-const fbTimeout = setTimeout(() => {
-  if (document.getElementById('s-loading').classList.contains('active')) {
-    document.getElementById('s-loading').querySelector('p').textContent =
-      'Error de conexion. Verifica tu conexion a internet e intenta de nuevo.';
-  }
-}, 10000);
-
-function showState(id){
-  document.querySelectorAll('.state').forEach(s=>s.classList.remove('active'));
+// ── Mostrar estado ─────────────────────────────────────────────────────────
+function showState(id) {
+  document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
   const form = document.getElementById('s-form');
   form.classList.remove('active');
-  if(id==='s-form'){
+  if (id === 's-form') {
     form.classList.add('active');
   } else {
     document.getElementById(id).classList.add('active');
   }
 }
 
-function fmtDate(d){
-  return d ? new Date(d+'T12:00:00').toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}) : '\u2014';
+function fmtDate(d) {
+  return d
+    ? new Date(d + 'T12:00:00').toLocaleDateString('es-CL', { weekday:'long', day:'numeric', month:'long' })
+    : '—';
 }
 
-// -- VALIDADOR RUT
-function calcularDV(rut) {
-  let suma = 0;
-  let multiplicador = 2;
-  for (let i = rut.length - 1; i >= 0; i--) {
-    suma += parseInt(rut[i]) * multiplicador;
-    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
+// ── Poblar selector de áreas ────────────────────────────────────────────────
+// t.area viene como "Área1, Área2, ..." (string separado por coma)
+// o como un array — manejamos ambos casos
+function poblarAreas(cap) {
+  const sel = document.getElementById('inp-area');
+  let areas = [];
+
+  if (Array.isArray(cap.area)) {
+    areas = cap.area.map(a => a.trim()).filter(Boolean);
+  } else if (typeof cap.area === 'string' && cap.area.trim()) {
+    areas = cap.area.split(',').map(a => a.trim()).filter(Boolean);
   }
-  const resto = 11 - (suma % 11);
-  if (resto === 11) return '0';
-  if (resto === 10) return 'k';
-  return String(resto);
+
+  capAreas = areas;
+
+  sel.innerHTML = '';
+
+  if (areas.length === 0) {
+    // Sin áreas definidas: campo de texto libre
+    sel.parentElement.innerHTML = `
+      <label>Área / Departamento</label>
+      <input type="text" id="inp-area" placeholder="Ej: Operaciones"/>
+    `;
+    return;
+  }
+
+  if (areas.length === 1) {
+    // Una sola área: mostrarla pre-seleccionada y no editable
+    sel.innerHTML = `<option value="${esc(areas[0])}" selected>${areas[0]}</option>`;
+    sel.disabled = true;
+    return;
+  }
+
+  // Múltiples áreas: selector desplegable
+  sel.innerHTML = '<option value="">— Selecciona tu área —</option>'
+    + areas.map(a => `<option value="${esc(a)}">${a}</option>`).join('');
+  sel.disabled = false;
 }
 
-function validarRut(rutCompleto) {
-  // Limpiar: quitar puntos, espacios, guion
-  const limpio = rutCompleto.replace(/[\.\s]/g, '').toLowerCase();
-  if (limpio.length < 2) return { valido: false, msg: '' };
-
-  const cuerpo = limpio.slice(0, -1);
-  const dv = limpio.slice(-1);
-
-  if (!/^\d+$/.test(cuerpo)) return { valido: false, msg: 'El cuerpo del RUT debe ser numerico' };
-  if (cuerpo.length < 7 || cuerpo.length > 8) return { valido: false, msg: 'El RUT debe tener 7 u 8 digitos' };
-
-  const dvEsperado = calcularDV(cuerpo);
-  if (dv !== dvEsperado) return { valido: false, msg: `Digito verificador incorrecto (esperado: ${dvEsperado.toUpperCase()})` };
-
-  return { valido: true, msg: 'RUT valido' };
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
 }
 
-function validarRutEnVivo(input) {
-  const fb = document.getElementById('rut-feedback');
-  const val = input.value.trim();
-  if (!val) { fb.textContent = ''; fb.className = 'rut-feedback'; return; }
-
-  const result = validarRut(val);
-  if (val.length < 4) { fb.textContent = ''; fb.className = 'rut-feedback'; return; }
-
-  fb.textContent = result.msg;
-  fb.className = 'rut-feedback ' + (result.valido ? 'ok' : 'err');
-}
-
-// -- FIREBASE INIT
+// ── Firebase ready ─────────────────────────────────────────────────────────
 document.addEventListener('fb-ready', async () => {
-  clearTimeout(fbTimeout);
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
-
-  if(!id){ showState('s-noparams'); return; }
+  if (!id) { showState('s-noparams'); return; }
 
   try {
-    const snap = await window._getDoc(window._doc(window._db,'capacitaciones',id));
-    if(!snap.exists()){ showState('s-error'); return; }
+    const snap = await window._getDoc(window._doc(window._db, 'capacitaciones', id));
+    if (!snap.exists()) { showState('s-error'); return; }
 
     currentCap = { id: snap.id, ...snap.data() };
 
+    // Banner
     document.getElementById('banner-title').textContent = currentCap.nombre;
-    document.getElementById('banner-lugar').textContent = '📍 '+currentCap.lugar;
-    document.getElementById('banner-fecha').textContent = '📅 '+fmtDate(currentCap.fecha);
-    document.getElementById('banner-dur').textContent   = '⏱ '+currentCap.duracion+'h';
+    document.getElementById('banner-fecha').textContent = '📅 ' + fmtDate(currentCap.fecha);
+    document.getElementById('banner-dur').textContent   = '⏱ ' + (currentCap.duracion || '—') + 'h';
 
-    if (currentCap.area) {
-      const areaEl = document.getElementById('banner-area');
-      areaEl.textContent = '🏷 '+currentCap.area;
-      areaEl.style.display = '';
+    if (currentCap.division) {
+      const divEl = document.getElementById('banner-division');
+      divEl.textContent = '🏢 ' + currentCap.division;
+      divEl.style.display = '';
+    }
+    if (currentCap.relator) {
+      const relEl = document.getElementById('banner-relator');
+      relEl.textContent = '👤 ' + currentCap.relator;
+      relEl.style.display = '';
     }
 
+    // División fija (no editable)
+    document.getElementById('division-text').textContent = currentCap.division || '—';
+
+    // Áreas filtradas
+    poblarAreas(currentCap);
+
     showState('s-form');
-    setTimeout(()=>document.getElementById('inp-nombre').focus(), 300);
-  } catch(e){
+    setTimeout(() => document.getElementById('inp-nombre').focus(), 300);
+  } catch (e) {
     console.error(e);
     showState('s-error');
   }
 });
 
-// -- REGISTRAR
-async function registrar(){
+// ── Validador RUT ──────────────────────────────────────────────────────────
+function calcularDV(rut) {
+  let suma = 0, mult = 2;
+  for (let i = rut.length - 1; i >= 0; i--) {
+    suma += parseInt(rut[i]) * mult;
+    mult = mult === 7 ? 2 : mult + 1;
+  }
+  const r = 11 - (suma % 11);
+  if (r === 11) return '0';
+  if (r === 10) return 'k';
+  return String(r);
+}
+
+function validarRut(rutCompleto) {
+  const limpio = rutCompleto.replace(/[\.\s]/g, '').toLowerCase();
+  if (limpio.length < 2) return { valido: false, msg: '' };
+  const cuerpo = limpio.slice(0, -1);
+  const dv     = limpio.slice(-1);
+  if (!/^\d+$/.test(cuerpo)) return { valido: false, msg: 'El cuerpo del RUT debe ser numérico' };
+  if (cuerpo.length < 7 || cuerpo.length > 8) return { valido: false, msg: 'El RUT debe tener 7 u 8 dígitos' };
+  const dvEsperado = calcularDV(cuerpo);
+  if (dv !== dvEsperado) return { valido: false, msg: `Dígito verificador incorrecto (esperado: ${dvEsperado.toUpperCase()})` };
+  return { valido: true, msg: '✓ RUT válido' };
+}
+
+function validarRutEnVivo(input) {
+  const fb  = document.getElementById('rut-feedback');
+  const val = input.value.trim();
+  if (!val || val.length < 4) { fb.textContent = ''; fb.className = 'rut-feedback'; return; }
+  const r = validarRut(val);
+  fb.textContent = r.msg;
+  fb.className   = 'rut-feedback ' + (r.valido ? 'ok' : 'err');
+}
+
+// ── Registrar asistencia ───────────────────────────────────────────────────
+async function registrar() {
   const nombre = document.getElementById('inp-nombre').value.trim();
   const rut    = document.getElementById('inp-rut').value.trim();
-  const area   = document.getElementById('inp-area').value.trim();
+  const areaEl = document.getElementById('inp-area');
+  const area   = areaEl ? areaEl.value.trim() : '';
 
-  document.getElementById('alert-dup').style.display='none';
-  document.getElementById('alert-err').style.display='none';
+  document.getElementById('alert-dup').style.display = 'none';
+  document.getElementById('alert-err').style.display = 'none';
 
-  if(!nombre){ markError('inp-nombre'); return; }
-  if(!rut)   { markError('inp-rut'); return; }
+  // Validaciones
+  if (!nombre) { markError('inp-nombre'); return; }
+  if (!rut)    { markError('inp-rut');    return; }
 
-  // Validar RUT antes de guardar
   const rutResult = validarRut(rut);
   if (!rutResult.valido) {
     const fb = document.getElementById('rut-feedback');
-    fb.textContent = rutResult.msg || 'RUT invalido - verifica el digito verificador';
-    fb.className = 'rut-feedback err';
+    fb.textContent = rutResult.msg || 'RUT inválido — verifica el dígito verificador';
+    fb.className   = 'rut-feedback err';
     markError('inp-rut');
     return;
   }
 
+  // Si hay múltiples áreas y el selector está habilitado, exigir selección
+  if (capAreas.length > 1 && !area) {
+    markError('inp-area');
+    return;
+  }
+
   const btn = document.getElementById('submit-btn');
-  btn.disabled=true;
-  btn.innerHTML='<span class="spinner-sm"></span>Guardando...';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-sm"></span>Guardando...';
 
   try {
-    // Verificar duplicado
-    const attCol  = window._collection(window._db,'capacitaciones',currentCap.id,'asistentes');
-    const dupQ    = window._query(attCol, window._where('rut','==',rut));
+    // Verificar duplicado por RUT
+    const attCol  = window._collection(window._db, 'capacitaciones', currentCap.id, 'asistentes');
+    const dupQ    = window._query(attCol, window._where('rut', '==', rut));
     const dupSnap = await window._getDocs(dupQ);
 
-    if(!dupSnap.empty){
-      document.getElementById('alert-dup').style.display='block';
+    if (!dupSnap.empty) {
+      document.getElementById('alert-dup').style.display = 'block';
       markError('inp-rut');
-      btn.disabled=false; btn.innerHTML='Confirmar Asistencia';
+      btn.disabled = false;
+      btn.innerHTML = 'Confirmar Asistencia ✓';
       return;
     }
 
-    // Guardar asistente
-    await window._addDoc(attCol,{ nombre, rut, area, hora: new Date().toISOString() });
+    // Guardar asistente — incluye división fija del curso
+    await window._addDoc(attCol, {
+      nombre,
+      rut,
+      division: currentCap.division || '',
+      area:     area || (capAreas[0] || ''),
+      hora:     new Date().toISOString()
+    });
 
-    // Incrementar contador
+    // Incrementar contador total
     await window._updateDoc(
-      window._doc(window._db,'capacitaciones',currentCap.id),
+      window._doc(window._db, 'capacitaciones', currentCap.id),
       { totalAsistentes: window._increment(1) }
     );
 
-    // Mostrar exito
+    // Pantalla de éxito
+    const areaUsada = area || (capAreas[0] || '');
     document.getElementById('success-course').innerHTML =
-      (currentCap.area ? `<div style="font-size:0.72rem;opacity:0.75;margin-bottom:0.3rem">${currentCap.area}</div>` : '')
-      + '📚 '+currentCap.nombre;
+      `<div style="font-size:0.72rem;opacity:0.7;margin-bottom:0.3rem">${currentCap.division || ''}${areaUsada ? ' · ' + areaUsada : ''}</div>`
+      + '📚 ' + currentCap.nombre;
+
     showState('s-success');
     startCountdown();
 
-  } catch(e){
+  } catch (e) {
     console.error(e);
-    document.getElementById('alert-err').style.display='block';
-    document.getElementById('alert-err').textContent='❌ Error: '+e.message;
-    btn.disabled=false; btn.innerHTML='Confirmar Asistencia';
+    document.getElementById('alert-err').style.display  = 'block';
+    document.getElementById('alert-err').textContent = '❌ Error: ' + e.message;
+    btn.disabled  = false;
+    btn.innerHTML = 'Confirmar Asistencia ✓';
   }
 }
 
-function markError(id){
+function markError(id) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.classList.add('error');
   el.focus();
-  setTimeout(()=>el.classList.remove('error'),600);
+  setTimeout(() => el.classList.remove('error'), 600);
 }
 
-function startCountdown(){
-  let n=8;
-  document.getElementById('count').textContent=n;
-  if(countdownTimer) clearInterval(countdownTimer);
-  countdownTimer = setInterval(()=>{
+// ── Countdown y reset ──────────────────────────────────────────────────────
+function startCountdown() {
+  let n = 8;
+  document.getElementById('count').textContent = n;
+  if (countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
     n--;
-    const el=document.getElementById('count');
-    if(el) el.textContent=n;
-    if(n<=0){ clearInterval(countdownTimer); resetForm(); }
-  },1000);
+    const el = document.getElementById('count');
+    if (el) el.textContent = n;
+    if (n <= 0) { clearInterval(countdownTimer); resetForm(); }
+  }, 1000);
 }
 
-function resetForm(){
-  if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
-  ['inp-nombre','inp-rut','inp-area'].forEach(i=>document.getElementById(i).value='');
-  ['alert-dup','alert-err'].forEach(i=>document.getElementById(i).style.display='none');
-  document.getElementById('rut-feedback').textContent='';
-  document.getElementById('rut-feedback').className='rut-feedback';
-  document.getElementById('submit-btn').disabled=false;
-  document.getElementById('submit-btn').innerHTML='Confirmar Asistencia';
+function resetForm() {
+  if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+  ['inp-nombre', 'inp-rut'].forEach(i => {
+    const el = document.getElementById(i);
+    if (el) el.value = '';
+  });
+  const areaEl = document.getElementById('inp-area');
+  if (areaEl && !areaEl.disabled) areaEl.value = '';
+  ['alert-dup', 'alert-err'].forEach(i => document.getElementById(i).style.display = 'none');
+  const fb = document.getElementById('rut-feedback');
+  fb.textContent = ''; fb.className = 'rut-feedback';
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = false; btn.innerHTML = 'Confirmar Asistencia ✓';
   showState('s-form');
-  setTimeout(()=>document.getElementById('inp-nombre').focus(),200);
+  setTimeout(() => document.getElementById('inp-nombre').focus(), 200);
 }
 
-// Modo quiosco
-document.addEventListener('contextmenu',e=>e.preventDefault());
-document.addEventListener('keydown',e=>{
-  if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='u')) e.preventDefault();
+// Modo quiosco: bloquear menú contextual y dev tools
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'u'))
+    e.preventDefault();
 });
 </script>
 </body>
